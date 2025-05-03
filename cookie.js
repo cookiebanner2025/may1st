@@ -2843,25 +2843,150 @@ function loadAdvertisingCookies() {
         fbq('track', 'PageView');
     }
 
-    // Load Microsoft Advertising (UET) tag if enabled
-    if (config.uetConfig.enabled) {
-        const uetTagId = detectUetTagId();
-        if (uetTagId) {
-            (function(w,d,t,r,u){
-                w[u]=w[u]||[];w[u].push({'uetq':{'ti':uetTagId}});
-                var s=d.createElement(t);s.src=r;s.async=1;
-                var f=d.getElementsByTagName(t)[0];f.parentNode.insertBefore(s,f);
-            })(window,document,'script','https://bat.bing.com/bat.js','uetq');
+   function loadPerformanceCookies() {
+    console.log('Loading performance cookies');
+}
+
+// Detect Microsoft UET tag ID from the page
+function detectUetTagId() {
+    if (!config.uetConfig.enabled || !config.uetConfig.autoDetectTagId) {
+        return config.uetConfig.defaultTagId;
+    }
+
+    // 1. Check for hardcoded UET tags in DOM
+    const uetTags = document.querySelectorAll('script[src*="bat.bing.com"], script[src*="bat.bing.net"]');
+    if (uetTags.length > 0) {
+        const tagSrc = uetTags[0].src;
+        const tiMatch = tagSrc.match(/[\?&]ti=(\d+)/);
+        if (tiMatch) return tiMatch[1];
+    }
+
+    // 2. Look for UET tag in scripts
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+        if (script.src.includes('bat.bing.com') || script.src.includes('bat.bing.net')) {
+            const matches = script.src.match(/[\?&]ti=(\d+)/);
+            if (matches && matches[1]) {
+                return matches[1];
+            }
         }
     }
 
-    // Load other advertising cookies as needed
-    if (config.googleAdsEnabled) {
-        // Google Ads conversion tracking would go here
+    // 3. Look for UET tag in dataLayer
+    if (window.dataLayer) {
+        for (let i = 0; i < window.dataLayer.length; i++) {
+            const item = window.dataLayer[i];
+            if (item.uetq && item.uetq.push) {
+                const uetConfig = item.uetq.find(cmd => typeof cmd === 'object' && cmd.ti);
+                if (uetConfig && uetConfig.ti) {
+                    return uetConfig.ti;
+                }
+            }
+        }
     }
+
+    return config.uetConfig.defaultTagId;
 }
 
-function loadPerformanceCookies() {
-    console.log('Loading performance cookies');
-    // Performance cookies loading logic would go here
+// Main initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // First check if we should run on this domain
+    if (!isDomainAllowed()) {
+        console.log('Cookie consent banner disabled for this domain');
+        return;
+    }
+    
+    // Load analytics data
+    if (config.analytics.enabled) {
+        loadAnalyticsData();
+    }
+    
+    // Get geo data from dataLayer or detect
+    let geoData = {};
+    if (window.dataLayer && window.dataLayer.length > 0) {
+        const geoItem = window.dataLayer.find(item => item.country || item.region || item.city);
+        if (geoItem) {
+            geoData = {
+                country: geoItem.country || '',
+                region: geoItem.region || '',
+                city: geoItem.city || '',
+                language: geoItem.language || ''
+            };
+        }
+    }
+    
+    // Check geo-targeting restrictions
+    if (!checkGeoTargeting(geoData)) {
+        console.log('Cookie consent banner disabled for this location');
+        return;
+    }
+    
+    // Detect language
+    const detectedLanguage = detectUserLanguage(geoData);
+    
+    // Set default UET consent
+    setDefaultUetConsent();
+    
+    const detectedCookies = scanAndCategorizeCookies();
+    if (detectedCookies.uncategorized.length > 0) {
+        console.log('Uncategorized cookies found:', detectedCookies.uncategorized);
+    }
+    
+    injectConsentHTML(detectedCookies, detectedLanguage);
+    initializeCookieConsent(detectedCookies, detectedLanguage);
+    
+    if (getCookie('cookie_consent')) {
+        showFloatingButton();
+    }
+    
+    // Enhanced periodic cookie scan with validation
+    setInterval(() => {
+        const newCookies = scanAndCategorizeCookies();
+        if (JSON.stringify(newCookies) !== JSON.stringify(detectedCookies)) {
+            updateCookieTables(newCookies);
+        }
+    }, 10000);
+    
+    // Handle scroll-based acceptance
+    if (config.behavior.acceptOnScroll) {
+        window.addEventListener('scroll', handleScrollAcceptance);
+    }
+});
+
+// Handle scroll-based acceptance
+function updateCookieTables(detectedCookies) {
+    const categories = ['functional', 'analytics', 'performance', 'advertising', 'uncategorized'];
+    
+    categories.forEach(category => {
+        const container = document.querySelector(`input[data-category="${category}"]`)?.closest('.cookie-category');
+        if (container) {
+            const content = container.querySelector('.cookie-details-content');
+            if (content) {
+                content.innerHTML = detectedCookies[category].length > 0 ? 
+                    generateCookieTable(detectedCookies[category]) : 
+                    '<p class="no-cookies-message">No cookies in this category detected.</p>';
+                
+                // Force open the category if new cookies are detected
+                if (detectedCookies[category].length > 0) {
+                    content.style.display = 'block';
+                    container.querySelector('.toggle-details').textContent = '−';
+                }
+            }
+        }
+    });
+}
+
+function handleScrollAcceptance() {
+    if (bannerShown && !getCookie('cookie_consent')) {
+        const scrollPercentage = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        if (scrollPercentage > 50) { // Accept on 50% scroll
+            acceptAllCookies();
+            hideCookieBanner();
+            if (config.behavior.showFloatingButton) {
+                showFloatingButton();
+            }
+            window.removeEventListener('scroll', handleScrollAcceptance);
+        }
+    }
 }
