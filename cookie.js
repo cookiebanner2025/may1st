@@ -2827,99 +2827,104 @@ function loadAnalyticsCookies() {
         gtag('config', 'YOUR_GA4_MEASUREMENT_ID');
     }
 }
+// Load analytics cookies function
 function loadAdvertisingCookies() {
     console.log('Loading advertising cookies');
-    
-    // Facebook Pixel
-    if (config.advertising.facebook.enabled && typeof fbq === 'undefined') {
-        !function(f,b,e,v,n,t,s) {
-            if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)
-        }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-        
-        fbq('init', config.advertising.facebook.pixelId);
-        fbq('track', 'PageView');
-        
-        // Track consent granted
-        fbq('consent', 'grant');
-    }
-
-    // Microsoft Advertising (UET)
-    if (config.advertising.microsoft.enabled) {
-        const uetTagId = config.advertising.microsoft.uetTagId || detectUetTagId();
-        if (uetTagId) {
-            window.uetq = window.uetq || [];
-            window.uetq.push({'uetq': {'ti': uetTagId}});
-            
-            const uetScript = document.createElement('script');
-            uetScript.src = 'https://bat.bing.com/bat.js';
-            uetScript.async = true;
-            document.head.appendChild(uetScript);
-            
-            // Set UET consent
-            window.uetq.push('set', 'consent', true);
-        }
-    }
-
-    // Google Ads
-    if (config.advertising.google.enabled) {
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', config.advertising.google.conversionId, {
-            'send_page_view': false
-        });
-        
-        // Load Google Tag
-        const gtagScript = document.createElement('script');
-        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${config.advertising.google.conversionId}`;
-        gtagScript.async = true;
-        document.head.appendChild(gtagScript);
-        
-        // Set default consent
-        gtag('consent', 'default', {
-            'ad_storage': 'granted',
-            'analytics_storage': 'granted'
-        });
-    }
-
-    // Twitter Pixel
-    if (config.advertising.twitter.enabled) {
-        !function(e,t,n,s,u,a){
-            e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
-            },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,
-            u.src='https://static.ads-twitter.com/uwt.js',
-            a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))
-        }(window,document,'script');
-        
-        twq('init', config.advertising.twitter.pixelId);
-        twq('track', 'PageView');
-        twq('consent', 'grant');
-    }
-
-    // LinkedIn Insight Tag
-    if (config.advertising.linkedin.enabled) {
-        window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
-        window._linkedin_data_partner_ids.push(config.advertising.linkedin.partnerId);
-        
-        const linkedinScript = document.createElement('script');
-        linkedinScript.innerHTML = `
-            (function(){var s = document.getElementsByTagName("script")[0];
-            var b = document.createElement("script");
-            b.type = "text/javascript";b.async = true;
-            b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
-            s.parentNode.insertBefore(b, s);})();
-        `;
-        document.head.appendChild(linkedinScript);
-        
-        // Set LinkedIn consent
-        window.lintrk('track', { conversion_id: config.advertising.linkedin.partnerId });
-    }
+    // This would typically load advertising scripts like Facebook Pixel, etc.
+    // Implementation depends on your specific advertising setup
 }
 
+// Load performance cookies function
+function loadPerformanceCookies() {
+    console.log('Loading performance cookies');
+    // This would typically load performance optimization scripts
+}
+
+// Main execution flow
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if domain is allowed
+    if (!isDomainAllowed()) {
+        console.log('Cookie consent banner not shown - domain not allowed');
+        return;
     }
+
+    // Load analytics data from storage
+    if (config.analytics.enabled) {
+        loadAnalyticsData();
+    }
+
+    // Set default UET consent
+    setDefaultUetConsent();
+
+    // Fetch location data if geo-targeting is enabled
+    if (config.geoConfig.allowedCountries.length > 0 || 
+        config.geoConfig.allowedRegions.length > 0 || 
+        config.geoConfig.allowedCities.length > 0 ||
+        config.geoConfig.blockedCountries.length > 0 || 
+        config.geoConfig.blockedRegions.length > 0 || 
+        config.geoConfig.blockedCities.length > 0) {
+        fetchLocationData();
+    }
+
+    // Scan and categorize existing cookies
+    const detectedCookies = scanAndCategorizeCookies();
+
+    // Detect user language
+    const userLanguage = detectUserLanguage(locationData);
+
+    // Inject HTML elements
+    injectConsentHTML(detectedCookies, userLanguage);
+
+    // Initialize cookie consent
+    initializeCookieConsent(detectedCookies, userLanguage);
+
+    // Handle scroll acceptance if enabled
+    if (config.behavior.acceptOnScroll) {
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            if (!getCookie('cookie_consent') && bannerShown) {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function() {
+                    const scrollPercentage = (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100;
+                    if (scrollPercentage > 30) { // 30% scroll threshold
+                        acceptAllCookies();
+                        hideCookieBanner();
+                        if (config.behavior.showFloatingButton) {
+                            showFloatingButton();
+                        }
+                    }
+                }, 200);
+            }
+        });
+    }
+
+    // Handle continue button acceptance if enabled
+    if (config.behavior.acceptOnContinue) {
+        document.addEventListener('click', function(e) {
+            if (!getCookie('cookie_consent') && bannerShown && 
+                !e.target.closest('#cookieConsentBanner') && 
+                !e.target.closest('#cookieSettingsModal')) {
+                acceptAllCookies();
+                hideCookieBanner();
+                if (config.behavior.showFloatingButton) {
+                    showFloatingButton();
+                }
+            }
+        });
+    }
+});
+
+// Export functions for global access if needed
+if (typeof window !== 'undefined') {
+    window.cookieConsent = {
+        showBanner: showCookieBanner,
+        hideBanner: hideCookieBanner,
+        showSettings: showCookieSettings,
+        acceptAll: acceptAllCookies,
+        rejectAll: rejectAllCookies,
+        saveSettings: saveCustomSettings,
+        changeLanguage: changeLanguage,
+        showAnalytics: showAnalyticsDashboard,
+        config: config
+    };
 }
