@@ -1,22 +1,9 @@
-/**
- * Cookie Consent Banner with Enhanced Features
- * 
- * Updates made:
- * 1. Added configurable privacy policy URL in config object
- * 2. Kept only 2 languages (en, fr) while maintaining all country mappings
- * 3. Maintained only GA4 and UET cookie databases (will add others later)
- * 4. Improved cross-browser/device compatibility
- * 5. Integrated location extraction code
- * 6. Added dataLayer events for location data
- * 7. Preserved all existing functions and logic
- */
-
 const config = {
     // Domain restriction
     allowedDomains: ['dev-rpractice.pantheonsite.io', 'assistenzaelettrodomestici-firenze.com'],
     
-    // Privacy Policy URL (configurable)
-    privacyPolicyUrl: '/privacy-policy/', // Set full URL here like 'https://example.com/privacy-policy/'
+    // Privacy policy URL (configurable)
+    privacyPolicyUrl: 'https://yourdomain.com/privacy-policy', // Add your full privacy policy URL here
     
     // Microsoft UET Configuration
     uetConfig: {
@@ -344,22 +331,23 @@ function setDefaultUetConsent() {
 }
 
 // Enhanced cookie database with detailed descriptions
+// Enhanced cookie database with detailed descriptions
 const cookieDatabase = {
-    // GA4 cookies
+    // GA4 Cookies
     '_ga': { category: 'analytics', duration: '730 days', description: 'Google Analytics - Used to distinguish users' },
-    '_ga_': { category: 'analytics', duration: '730 days', description: 'Google Analytics - Used to persist session state' },
     '_gid': { category: 'analytics', duration: '1 day', description: 'Google Analytics - Used to distinguish users' },
     '_gat': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
+    '_gat_gtag': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
     
-    // Microsoft UET cookies
-    '_uetmsclkid': { category: 'advertising', duration: '90 days', description: 'Microsoft Advertising Click ID' },
-    '_uetvid': { category: 'advertising', duration: '390 days', description: 'Microsoft Advertising Visitor ID' },
-    '_uetsid': { category: 'advertising', duration: '1 day', description: 'Microsoft Advertising Session ID' },
-    '_uetmsdns': { category: 'advertising', duration: 'Session', description: 'Microsoft UET consent mode cookie' },
-    'MUID': { category: 'advertising', duration: '390 days', description: 'Microsoft Universal ID' },
+    // Microsoft UET Cookies
+    '_uetmsclkid': { category: 'advertising', duration: 'Session', description: 'Microsoft UET - Click ID' },
+    '_uetmsdns': { category: 'advertising', duration: 'Session', description: 'Microsoft UET - Domain Session' },
+    '_uetsid': { category: 'advertising', duration: '1 day', description: 'Microsoft UET - Session ID' },
+    '_uetvid': { category: 'advertising', duration: '390 days', description: 'Microsoft UET - Visitor ID' },
+    'MUID': { category: 'advertising', duration: '390 days', description: 'Microsoft UET - User ID' },
     
-    // Essential cookies
-    'cookie_consent': { category: 'functional', duration: '365 days', description: 'Stores user consent preferences' }
+    // Other common cookies
+    'cookie_consent': { category: 'functional', duration: '365 days', description: 'Consent preferences' }
 };
 
 // Language translations (keeping only en and fr as requested)
@@ -533,29 +521,40 @@ let locationData = {
 function fetchLocationData() {
     var apiKey = '4c1e5d00e0ac93'; // Your API key from ipinfo.io
 
+    // Fallback for browsers that don't support fetch
+    if (typeof fetch === 'undefined') {
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/fetch/3.6.2/fetch.min.js';
+        document.head.appendChild(script);
+        
+        // Try again after a delay
+        setTimeout(fetchLocationData, 1000);
+        return;
+    }
+
     fetch('https://ipinfo.io/json?token=' + apiKey)
         .then(function(response) {
+            // Check if the response is successful
             if (!response.ok) {
                 throw new Error('Failed to fetch location data from ipinfo.io');
             }
             return response.json();
         })
         .then(function(payload) {
-            // Update location data
-            locationData = {
-                country: (payload && payload.country) ? payload.country : "Unknown",
-                city: (payload && payload.city) ? payload.city : "Unknown",
-                zip: (payload && payload.postal) ? payload.postal : "Unknown",
-                ip: (payload && payload.ip) ? payload.ip : "Unknown",
-                street: (payload && payload.loc) ? payload.loc : "Unknown",
-                region: (payload && payload.region) ? payload.region : "Unknown",
-                timezone: (payload && payload.timezone) ? payload.timezone : "Unknown",
-                isp: (payload && payload.org) ? payload.org : "Unknown",
-                language: (navigator.language || "Unknown").split("-")[0],
-                continent: getContinentFromCountry(payload.country)
-            };
+            // Use fallback values if properties do not exist
+            locationData.country = (payload && payload.country) ? payload.country : "Unknown";
+            locationData.city = (payload && payload.city) ? payload.city : "Unknown";
+            locationData.zip = (payload && payload.postal) ? payload.postal : "Unknown";
+            locationData.ip = (payload && payload.ip) ? payload.ip : "Unknown";
+            locationData.street = (payload && payload.loc) ? payload.loc : "Unknown";
+            locationData.region = (payload && payload.region) ? payload.region : "Unknown";
+            locationData.timezone = (payload && payload.timezone) ? payload.timezone : "Unknown";
+            locationData.isp = (payload && payload.org) ? payload.org : "Unknown";
+            locationData.language = (navigator.language || "Unknown").split("-")[0];
+            locationData.continent = getContinentFromCountry(locationData.country);
 
-            // Push to dataLayer
+            // Push data to the dataLayer for Google Tag Manager
+            window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
                 'event': 'locationRetrieved',
                 'continent': locationData.continent,
@@ -574,6 +573,8 @@ function fetchLocationData() {
         })
         .catch(function(error) {
             console.error('Error fetching location:', error);
+            // Push error details to dataLayer if needed
+            window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
                 'event': 'locationError',
                 'error': error.message
@@ -1192,7 +1193,7 @@ function injectConsentHTML(detectedCookies, language = 'en') {
             <path d="M11 11H13.01V13H11V11Z" fill="currentColor"/>
             <path d="M8 15H10.01V17H8V15Z" fill="currentColor"/>
             <path d="M15 15H17.01V17H15V15Z" fill="currentColor"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C12.0366 1 12.0732 1.00018 12.1097 1.00054L13.3208 1.01239L13.08 2.19932C13.0276 2.45721 13 2.72486 13 3C13 4.95769 14.4074 6.58878 16.2659 6.93296L16.9419 7.05815L17.067 7.73414C17.4112 9.59261 19.0423 11 21 11C21.2751 11 21.5428 10.9724 21.8007 10.92L22.9876 10.6792L22.9995 11.8903C22.9998 11.9268 23 11.9634 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM11.0002 3.0549C6.50018 3.55223 3 7.36736 3 12C3 16.9706 7.02944 21 12 21C16.6326 21 20.4478 17.4998 20.9451 12.9998C18.2609 12.9757 15.9991 11.1899 15.2573 8.74272C12.8101 8.00085 11.0243 5.73912 11.0002 3.0549Z" fill="currentColor"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C12.0366 1 12.0732 1.00018 12.1097 1.00054L13.3208 1.01239L13.08 2.19932C13.0276 2.45721 13 2.72486 13 3C13 4.95769 14.4074 6.58878 16.2659 6.93296L16.9419 7.05815L17.067 7.73414C17.4112 9.59261 19.0423 11 21 11C21.2751 11 21.5428 10.9724 21.8007 10.92L22.9876 10.6792L22.9995 11.8903C22.9998 11.9268 23 11.9634 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12Z" fill="currentColor"/>
         </svg>
     </div>
     
@@ -2563,7 +2564,7 @@ function acceptAllCookies() {
         updateConsentStats('accepted');
     }
     
-    // Push dataLayer event for consent acceptance
+    // Push dataLayer event for consent acceptance with location data
     window.dataLayer.push({
         'event': 'cookie_consent_accepted',
         'consent_mode': {
@@ -2578,7 +2579,8 @@ function acceptAllCookies() {
         'gcs': 'G111',
         'consent_status': 'accepted',
         'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString()
+        'timestamp': new Date().toISOString(),
+        'location_data': locationData
     });
 }
 
@@ -2604,7 +2606,7 @@ function rejectAllCookies() {
         updateConsentStats('rejected');
     }
     
-    // Push dataLayer event for consent rejection
+    // Push dataLayer event for consent rejection with location data
     window.dataLayer.push({
         'event': 'cookie_consent_rejected',
         'consent_mode': {
@@ -2619,7 +2621,8 @@ function rejectAllCookies() {
         'gcs': 'G100',
         'consent_status': 'rejected',
         'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString()
+        'timestamp': new Date().toISOString(),
+        'location_data': locationData
     });
 }
 
@@ -2665,7 +2668,7 @@ function saveCustomSettings() {
         updateConsentStats('custom');
     }
     
-    // Push dataLayer event for custom consent settings
+    // Push dataLayer event for custom consent settings with location data
     const consentStates = {
         'ad_storage': consentData.categories.advertising ? 'granted' : 'denied',
         'analytics_storage': consentData.categories.analytics ? 'granted' : 'denied',
@@ -2682,7 +2685,8 @@ function saveCustomSettings() {
         'gcs': gcsSignal,
         'consent_status': 'custom',
         'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString()
+        'timestamp': new Date().toISOString(),
+        'location_data': locationData
     });
 }
 
@@ -2776,7 +2780,8 @@ function updateConsentMode(consentData) {
                 'src': 'update',
                 'asc': uetConsentState === 'granted' ? 'G' : 'D',
                 'timestamp': new Date().toISOString()
-            }
+            },
+            'location_data': locationData
         });
     }
     
@@ -2787,7 +2792,8 @@ function updateConsentMode(consentData) {
         'gcs': gcsSignal,
         'consent_status': consentData.status,
         'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString()
+        'timestamp': new Date().toISOString(),
+        'location_data': locationData
     });
 }
 
@@ -2831,185 +2837,9 @@ function loadAdvertisingCookies() {
         if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
         n.queue=[];t=b.createElement(e);t.async=!0;
         t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        s.parentNode.insertBefore(t,s)}(window,document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', 'YOUR_PIXEL_ID');
+        fbq('init', 'YOUR_FACEBOOK_PIXEL_ID'); // Replace with your actual Pixel ID
         fbq('track', 'PageView');
     }
 }
-
-function loadPerformanceCookies() {
-    console.log('Loading performance cookies');
-}
-
-// Detect Microsoft UET tag ID from the page
-function detectUetTagId() {
-    if (!config.uetConfig.enabled || !config.uetConfig.autoDetectTagId) {
-        return config.uetConfig.defaultTagId;
-    }
-
-
-    // 1. Check for hardcoded UET tags in DOM
-    const uetTags = document.querySelectorAll('script[src*="bat.bing.com"], script[src*="bat.bing.net"]');
-    if (uetTags.length > 0) {
-        for (let tag of uetTags) {
-            const src = tag.getAttribute('src');
-            const tagIdMatch = src.match(/[?&]id=([^&]+)/);
-            if (tagIdMatch && tagIdMatch[1]) {
-                return tagIdMatch[1];
-            }
-        }
-    }
-
-    // 2. Check for UET initialization in scripts
-    const scripts = document.querySelectorAll('script');
-    for (let script of scripts) {
-        if (script.textContent.includes('uetq.push') || script.textContent.includes('window.uetq')) {
-            const tagIdMatch = script.textContent.match(/id\s*:\s*["']([^"']+)["']/);
-            if (tagIdMatch && tagIdMatch[1]) {
-                return tagIdMatch[1];
-            }
-        }
-    }
-
-    // 3. Check dataLayer for UET configuration
-    if (window.dataLayer) {
-        for (let i = 0; i < window.dataLayer.length; i++) {
-            const entry = window.dataLayer[i];
-            if (entry.uetConfig && entry.uetConfig.id) {
-                return entry.uetConfig.id;
-            }
-        }
-    }
-
-    // 4. Fallback to default if not found
-    return config.uetConfig.defaultTagId;
-}
-
-// Initialize Microsoft UET with consent mode
-function initializeUetTag() {
-    if (!config.uetConfig.enabled) return;
-
-    const tagId = detectUetTagId();
-    if (!tagId) return;
-
-    // Initialize UET tag if not already loaded
-    if (typeof window.uetq === 'undefined') {
-        window.uetq = window.uetq || [];
-    }
-
-    // Set default consent state
-    const defaultConsent = config.uetConfig.defaultConsent === 'granted' ? 'granted' : 'denied';
-    window.uetq.push('consent', 'default', {
-        'ad_storage': defaultConsent
-    });
-
-    // Load UET script if not already loaded
-    if (!document.querySelector('script[src*="bat.bing.com"]') && 
-        !document.querySelector('script[src*="bat.bing.net"]')) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://bat.bing.com/bat.js`;
-        document.head.appendChild(script);
-    }
-
-    // Push initialization event to dataLayer
-    window.dataLayer.push({
-        'event': 'uet_init',
-        'uet_config': {
-            'id': tagId,
-            'consent_mode': {
-                'ad_storage': defaultConsent
-            },
-            'timestamp': new Date().toISOString()
-        }
-    });
-}
-
-// Main initialization when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if domain is allowed
-    if (!isDomainAllowed()) {
-        console.log('Cookie consent banner not shown - domain not allowed');
-        return;
-    }
-
-    // Fetch location data
-    fetchLocationData();
-
-    // Set default UET consent
-    setDefaultUetConsent();
-
-    // Load analytics data
-    loadAnalyticsData();
-
-    // Scan cookies on the page
-    const detectedCookies = scanAndCategorizeCookies();
-
-    // Detect user language
-    const userLanguage = detectUserLanguage(locationData);
-
-    // Inject HTML elements
-    injectConsentHTML(detectedCookies, userLanguage);
-
-    // Initialize cookie consent
-    initializeCookieConsent(detectedCookies, userLanguage);
-
-    // Initialize Microsoft UET
-    initializeUetTag();
-
-    // Handle scroll behavior for accept on scroll
-    if (config.behavior.acceptOnScroll) {
-        window.addEventListener('scroll', function() {
-            if (bannerShown) {
-                acceptAllCookies();
-                hideCookieBanner();
-            }
-        }, { once: true });
-    }
-
-    // Handle continue behavior for accept on continue
-    if (config.behavior.acceptOnContinue) {
-        document.addEventListener('click', function() {
-            if (bannerShown && !getCookie('cookie_consent')) {
-                acceptAllCookies();
-                hideCookieBanner();
-            }
-        }, { once: true });
-    }
-});
-
-// Handle page visibility changes for consent updates
-document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'visible') {
-        const consentCookie = getCookie('cookie_consent');
-        if (consentCookie) {
-            const consentData = JSON.parse(consentCookie);
-            updateConsentMode(consentData);
-        }
-    }
-});
-
-// Export functions for manual control if needed
-window.cookieConsent = {
-    showBanner: showCookieBanner,
-    hideBanner: hideCookieBanner,
-    showSettings: showCookieSettings,
-    hideSettings: hideCookieSettings,
-    showAnalytics: showAnalyticsDashboard,
-    hideAnalytics: hideAnalyticsDashboard,
-    acceptAll: acceptAllCookies,
-    rejectAll: rejectAllCookies,
-    saveSettings: saveCustomSettings,
-    changeLanguage: changeLanguage,
-    getConfig: function() { return config; },
-    getLocationData: function() { return locationData; },
-    getConsentData: function() { 
-        const consentCookie = getCookie('cookie_consent');
-        return consentCookie ? JSON.parse(consentCookie) : null;
-    }
-};
-
-
-
-    
