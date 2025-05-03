@@ -1,18 +1,21 @@
 /**
  * Enhanced Cookie Consent Banner with:
- * - Google Consent Mode v2 compliance
- * - Microsoft UET consent integration
- * - Geo-location based targeting
- * - Robust error handling
- * - Two language support (English and French)
- * - Cookie databases for UET and GA4
- * - Cross-browser compatibility
- * - Location data extraction and dataLayer integration
+ * 1. Google Consent Mode v2 compliance
+ * 2. Microsoft UET integration with validation
+ * 3. Privacy policy link configuration
+ * 4. Geo-location based consent with dataLayer integration
+ * 5. Robust error handling
+ * 6. Browser/device compatibility improvements
+ * 7. Cookie database for GA4 and UET cookies
+ * 8. Language support (en/fr) with country mappings
  */
 
 const config = {
     // Domain restriction
     allowedDomains: ['dev-rpractice.pantheonsite.io', 'assistenzaelettrodomestici-firenze.com'],
+    
+    // Privacy policy link configuration
+    privacyPolicyUrl: '/privacy-policy/', // Configurable privacy policy URL
     
     // Microsoft UET Configuration
     uetConfig: {
@@ -69,7 +72,7 @@ const config = {
     
     // Language configuration
     languageConfig: {
-        defaultLanguage: 'fr',
+        defaultLanguage: 'en',
         availableLanguages: ['en', 'fr'], // Only en and fr as requested
         showLanguageSelector: true,
         autoDetectLanguage: true
@@ -300,10 +303,8 @@ const config = {
 // ============== IMPLEMENTATION SECTION ============== //
 // Initialize dataLayer for Google Tag Manager
 window.dataLayer = window.dataLayer || [];
-
 // Initialize UET queue if not already exists (Microsoft Consent Mode)
 if (typeof window.uetq === 'undefined') window.uetq = [];
-
 function gtag() { dataLayer.push(arguments); }
 
 // Set default consent (deny all except security)
@@ -317,45 +318,22 @@ gtag('consent', 'default', {
     'security_storage': 'granted'
 });
 
-// Set default UET consent
-function setDefaultUetConsent() {
-    if (!config.uetConfig.enabled) return;
-    
-    // Redundant safeguard
-    if (typeof window.uetq === 'undefined') window.uetq = [];
-    
-    const consentState = config.uetConfig.defaultConsent === 'granted' ? 'granted' : 'denied';
-    
-    window.uetq.push('consent', 'default', {
-        'ad_storage': consentState
-    });
-    
-    // Push to dataLayer
-    window.dataLayer.push({
-        'event': 'uet_consent_default',
-        'consent_mode': {
-            'ad_storage': consentState
-        },
-        'timestamp': new Date().toISOString()
-    });
-}
-
-// Enhanced cookie database with detailed descriptions
+// Enhanced cookie database with GA4 and UET cookies
 const cookieDatabase = {
-    // Google Analytics cookies
+    // GA4 Cookies
     '_ga': { category: 'analytics', duration: '730 days', description: 'Google Analytics - Used to distinguish users' },
-    '_gid': { category: 'analytics', duration: '1 day', description: 'Google Analytics - Used to distinguish users' },
+    '_ga_<container-id>': { category: 'analytics', duration: '730 days', description: 'Google Analytics - Used to persist session state' },
+    '_gid': { category: 'analytics', duration: '24 hours', description: 'Google Analytics - Used to distinguish users' },
     '_gat': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
-    '_gat_gtag': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
+    '_gat_<container-id>': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
     
-    // Microsoft UET cookies
-    '_uetmsclkid': { category: 'advertising', duration: 'Session', description: 'Microsoft UET - Click identifier' },
-    '_uetmsdns': { category: 'advertising', duration: 'Session', description: 'Microsoft UET - Domain session' },
-    '_uetsid': { category: 'advertising', duration: '1 day', description: 'Microsoft UET - Session ID' },
-    '_uetvid': { category: 'advertising', duration: '390 days', description: 'Microsoft UET - Visitor ID' },
-    'MUID': { category: 'advertising', duration: '390 days', description: 'Microsoft Universal ID' },
+    // Microsoft UET Cookies
+    '_uetvid': { category: 'advertising', duration: '390 days', description: 'Microsoft Advertising - Unique user ID' },
+    '_uetsid': { category: 'advertising', duration: '1 day', description: 'Microsoft Advertising - Session ID' },
+    '_uetmsclkid': { category: 'advertising', duration: '30 days', description: 'Microsoft Advertising - Click ID' },
+    '_uetmsdns': { category: 'advertising', duration: 'Session', description: 'Microsoft UET consent mode cookie' },
     
-    // Other common cookies
+    // Functional cookies
     'cookie_consent': { category: 'functional', duration: '365 days', description: 'Stores user consent preferences' }
 };
 
@@ -511,15 +489,6 @@ let isDashboardAuthenticated = false;
 // Banner scheduling variables
 let bannerTimer = null;
 let bannerShown = false;
-
-// Location data from IP
-let locationData = {
-    country: 'Unknown',
-    city: 'Unknown',
-    region: 'Unknown',
-    continent: 'Unknown',
-    language: 'en'
-};
 
 // Load analytics data from localStorage
 function loadAnalyticsData() {
@@ -1058,7 +1027,7 @@ function injectConsentHTML(detectedCookies, language = 'en') {
             <div class="cookie-consent-content">
                 <h2>${lang.title}</h2>
                 <p>${lang.description}</p>
-                <a href="/privacy-policy/" class="privacy-policy-link">${lang.privacy}</a>
+                <a href="${config.privacyPolicyUrl}" class="privacy-policy-link">${lang.privacy}</a>
             </div>
             <div class="cookie-consent-buttons">
                 <button id="acceptAllBtn" class="cookie-btn accept-btn">${lang.accept}</button>
@@ -2674,21 +2643,27 @@ function updateConsentMode(consentData) {
     // Update Microsoft UET consent if enabled
     if (config.uetConfig.enabled) {
         const uetConsentState = consentData.categories.advertising ? 'granted' : 'denied';
-        window.uetq.push('consent', 'update', {
-            'ad_storage': uetConsentState
-        });
         
-        // Push UET consent event to dataLayer with the exact requested format
-        window.dataLayer.push({
-            'event': 'uet_consent_update',
-            'uet_consent': {
-                'ad_storage': uetConsentState,
-                'status': consentData.status,
-                'src': 'update',
-                'asc': uetConsentState === 'granted' ? 'G' : 'D',
-                'timestamp': new Date().toISOString()
-            }
-        });
+        // First check if UET tag exists on the page
+        if (isUetTagPresent()) {
+            window.uetq.push('consent', 'update', {
+                'ad_storage': uetConsentState
+            });
+            
+            // Push UET consent event to dataLayer with the exact requested format
+            window.dataLayer.push({
+                'event': 'uet_consent_update',
+                'uet_consent': {
+                    'ad_storage': uetConsentState,
+                    'status': consentData.status,
+                    'src': 'update',
+                    'asc': uetConsentState === 'granted' ? 'G' : 'D',
+                    'timestamp': new Date().toISOString()
+                }
+            });
+        } else {
+            console.warn('Microsoft UET tag not found on page - consent update skipped');
+        }
     }
     
     // Push general consent update to dataLayer
@@ -2698,6 +2673,51 @@ function updateConsentMode(consentData) {
         'gcs': gcsSignal,
         'consent_status': consentData.status,
         'consent_categories': consentData.categories,
+        'timestamp': new Date().toISOString()
+    });
+}
+
+// Check if Microsoft UET tag is present on the page
+function isUetTagPresent() {
+    // Check for UET script tag
+    const uetScripts = document.querySelectorAll('script[src*="bat.bing.com"], script[src*="bat.bing.net"]');
+    if (uetScripts.length > 0) return true;
+    
+    // Check for UET in dataLayer
+    if (window.dataLayer) {
+        for (let i = 0; i < window.dataLayer.length; i++) {
+            if (window.dataLayer[i].uetq) {
+                return true;
+            }
+        }
+    }
+    
+    // Check for UET global variable
+    return typeof window.uetq !== 'undefined';
+}
+
+// Set default UET consent
+function setDefaultUetConsent() {
+    if (!config.uetConfig.enabled) return;
+    
+    // First check if UET tag exists on the page
+    if (!isUetTagPresent()) {
+        console.warn('Microsoft UET tag not found on page - default consent not set');
+        return;
+    }
+    
+    const consentState = config.uetConfig.defaultConsent === 'granted' ? 'granted' : 'denied';
+    
+    window.uetq.push('consent', 'default', {
+        'ad_storage': consentState
+    });
+    
+    // Push to dataLayer
+    window.dataLayer.push({
+        'event': 'uet_consent_default',
+        'consent_mode': {
+            'ad_storage': consentState
+        },
         'timestamp': new Date().toISOString()
     });
 }
@@ -2753,51 +2773,111 @@ function loadPerformanceCookies() {
     console.log('Loading performance cookies');
 }
 
-// Detect Microsoft UET tag ID from the page
-function detectUetTagId() {
-    if (!config.uetConfig.enabled || !config.uetConfig.autoDetectTagId) {
-        return config.uetConfig.defaultTagId;
+// Main initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // First check if we should run on this domain
+    if (!isDomainAllowed()) {
+        console.log('Cookie consent banner disabled for this domain');
+        return;
     }
-
-    // 1. Check for hardcoded UET tags in DOM
-    const uetTags = document.querySelectorAll('script[src*="bat.bing.com"], script[src*="bat.bing.net"]');
-    if (uetTags.length > 0) {
-        const tagSrc = uetTags[0].src;
-        const tiMatch = tagSrc.match(/[\?&]ti=(\d+)/);
-        if (tiMatch) return tiMatch[1];
+    
+    // Load analytics data
+    if (config.analytics.enabled) {
+        loadAnalyticsData();
     }
-
-    // 2. Look for UET tag in scripts
-    const scripts = document.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-        const script = scripts[i];
-        if (script.src.includes('bat.bing.com') || script.src.includes('bat.bing.net')) {
-            const matches = script.src.match(/[\?&]ti=(\d+)/);
-            if (matches && matches[1]) {
-                return matches[1];
-            }
+    
+    // Get geo data from dataLayer or detect
+    let geoData = {};
+    if (window.dataLayer && window.dataLayer.length > 0) {
+        const geoItem = window.dataLayer.find(item => item.country || item.region || item.city);
+        if (geoItem) {
+            geoData = {
+                country: geoItem.country || '',
+                region: geoItem.region || '',
+                city: geoItem.city || '',
+                language: geoItem.language || ''
+            };
         }
     }
+    
+    // Check geo-targeting restrictions
+    if (!checkGeoTargeting(geoData)) {
+        console.log('Cookie consent banner disabled for this location');
+        return;
+    }
+    
+    // Detect language
+    const detectedLanguage = detectUserLanguage(geoData);
+    
+    // Set default UET consent
+    setDefaultUetConsent();
+    
+    const detectedCookies = scanAndCategorizeCookies();
+    if (detectedCookies.uncategorized.length > 0) {
+        console.log('Uncategorized cookies found:', detectedCookies.uncategorized);
+    }
+    
+    injectConsentHTML(detectedCookies, detectedLanguage);
+    initializeCookieConsent(detectedCookies, detectedLanguage);
+    
+    if (getCookie('cookie_consent')) {
+        showFloatingButton();
+    }
+    
+    // Enhanced periodic cookie scan with validation
+    setInterval(() => {
+        const newCookies = scanAndCategorizeCookies();
+        if (JSON.stringify(newCookies) !== JSON.stringify(detectedCookies)) {
+            updateCookieTables(newCookies);
+        }
+    }, 10000);
+    
+    // Handle scroll-based acceptance
+    if (config.behavior.acceptOnScroll) {
+        window.addEventListener('scroll', handleScrollAcceptance);
+    }
+});
 
-    // 3. Look for UET tag in dataLayer
-    if (window.dataLayer) {
-        for (let i = 0; i < window.dataLayer.length; i++) {
-            const item = window.dataLayer[i];
-            if (item.uetq && item.uetq.push) {
-                const uetConfig = item.uetq.find(cmd => typeof cmd === 'object' && cmd.ti);
-                if (uetConfig && uetConfig.ti) {
-                    return uetConfig.ti;
+// Handle scroll-based acceptance
+function updateCookieTables(detectedCookies) {
+    const categories = ['functional', 'analytics', 'performance', 'advertising', 'uncategorized'];
+    
+    categories.forEach(category => {
+        const container = document.querySelector(`input[data-category="${category}"]`)?.closest('.cookie-category');
+        if (container) {
+            const content = container.querySelector('.cookie-details-content');
+            if (content) {
+                content.innerHTML = detectedCookies[category].length > 0 ? 
+                    generateCookieTable(detectedCookies[category]) : 
+                    '<p class="no-cookies-message">No cookies in this category detected.</p>';
+                
+                // Force open the category if new cookies are detected
+                if (detectedCookies[category].length > 0) {
+                    content.style.display = 'block';
+                    container.querySelector('.toggle-details').textContent = '−';
                 }
             }
         }
-    }
-
-    return config.uetConfig.defaultTagId;
+    });
 }
 
-// Location detection function
-function detectUserLocation() {
-    const apiKey = '4c1e5d00e0ac93'; // Your API key from ipinfo.io
+function handleScrollAcceptance() {
+    if (bannerShown && !getCookie('cookie_consent')) {
+        const scrollPercentage = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        if (scrollPercentage > 50) { // Accept on 50% scroll
+            acceptAllCookies();
+            hideCookieBanner();
+            if (config.behavior.showFloatingButton) {
+                showFloatingButton();
+            }
+            window.removeEventListener('scroll', handleScrollAcceptance);
+        }
+    }
+}
+
+// Geo-location detection with dataLayer integration
+(function() {
+    var apiKey = '4c1e5d00e0ac93'; // Your API key from ipinfo.io
 
     fetch('https://ipinfo.io/json?token=' + apiKey)
         .then(function(response) {
@@ -2809,180 +2889,265 @@ function detectUserLocation() {
         })
         .then(function(payload) {
             // Use fallback values if properties do not exist
-            locationData.country = (payload && payload.country) ? payload.country : "Unknown";
-            locationData.city = (payload && payload.city) ? payload.city : "Unknown";
-            locationData.region = (payload && payload.region) ? payload.region : "Unknown";
-            locationData.ip = (payload && payload.ip) ? payload.ip : "Unknown";
-            locationData.timezone = (payload && payload.timezone) ? payload.timezone : "Unknown";
-            locationData.language = (navigator.language || "Unknown").split("-")[0];
+            var country = (payload && payload.country) ? payload.country : "Unknown";
+            var city = (payload && payload.city) ? payload.city : "Unknown";
+            var zip = (payload && payload.postal) ? payload.postal : "Unknown"; // ZIP code
+            var ip = (payload && payload.ip) ? payload.ip : "Unknown"; // IP address
+            var street = (payload && payload.loc) ? payload.loc : "Unknown"; // Street location (latitude, longitude)
+            var region = (payload && payload.region) ? payload.region : "Unknown"; // Region/State
+            var timezone = (payload && payload.timezone) ? payload.timezone : "Unknown"; // Time zone
+            var isp = (payload && payload.org) ? payload.org : "Unknown"; // ISP/Organization
+            var language = (navigator.language || "Unknown").split("-")[0]; // Language of the user (fallback to browser language)
 
             // Determine continent based on the country
-            locationData.continent = getContinentFromCountry(locationData.country);
+            var continent = getContinentFromCountry(country);
 
             // Push data to the dataLayer for Google Tag Manager
+            window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
                 'event': 'locationRetrieved',
-                'continent': locationData.continent,
-                'country': locationData.country,
-                'city': locationData.city,
-                'region': locationData.region,
-                'ip': locationData.ip,
-                'timezone': locationData.timezone,
-                'language': locationData.language
+                'continent': continent,
+                'country': country,
+                'city': city,
+                'zip': zip,
+                'ip': ip,
+                'street': street,
+                'region': region,
+                'timezone': timezone,
+                'isp': isp,
+                'language': language
             });
 
-            console.log('Location Data Sent to dataLayer:', locationData);
+                       // Store geo data in a global variable for later use
+            window._geoData = {
+                continent: continent,
+                country: country,
+                city: city,
+                zip: zip,
+                ip: ip,
+                street: street,
+                region: region,
+                timezone: timezone,
+                isp: isp,
+                language: language
+            };
+
+            // Check if we need to update the banner language based on geo data
+            if (config.languageConfig.autoDetectLanguage) {
+                const detectedLanguage = detectUserLanguage({
+                    country: country,
+                    region: region,
+                    language: language
+                });
+                
+                // Only change language if it's different from current
+                const currentLanguage = document.getElementById('cookieLanguageSelect') ?
+                    document.getElementById('cookieLanguageSelect').value :
+                    config.languageConfig.defaultLanguage;
+                
+                if (detectedLanguage !== currentLanguage) {
+                    changeLanguage(detectedLanguage);
+                }
+            }
+
+            // Log the successful retrieval
+            console.log('Geo-location data retrieved:', {
+                continent: continent,
+                country: country,
+                city: city,
+                zip: zip,
+                ip: ip,
+                street: street,
+                region: region,
+                timezone: timezone,
+                isp: isp,
+                language: language
+            });
         })
         .catch(function(error) {
-            console.error('Error fetching location:', error);
-            // Push error details to dataLayer if needed
+            console.error('Error fetching geo-location data:', error);
+            
+            // Push error event to dataLayer
+            window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
                 'event': 'locationError',
-                'error': error.message
+                'error': error.message || 'Unknown error'
             });
-        });
-}
 
-// Function to map countries to their respective continents
-function getContinentFromCountry(countryCode) {
-    var continentMap = {
-        "AF": "Africa", "AL": "Europe", "DZ": "Africa", "AS": "Oceania", "AD": "Europe", "AO": "Africa",
-        "AR": "South America", "AM": "Asia", "AU": "Oceania", "AT": "Europe", "AZ": "Asia", "BS": "North America",
-        "BH": "Asia", "BD": "Asia", "BB": "North America", "BY": "Europe", "BE": "Europe", "BZ": "North America",
-        "BJ": "Africa", "BT": "Asia", "BO": "South America", "BA": "Europe", "BW": "Africa", "BR": "South America",
-        "BN": "Asia", "BG": "Europe", "BF": "Africa", "BI": "Africa", "BJ": "Africa", "BD": "Asia",
-        "NL": "Europe", "US": "North America", "CA": "North America", "GB": "Europe", "CN": "Asia", "IN": "Asia",
-        "ZA": "Africa", "AU": "Oceania", "NZ": "Oceania", "DE": "Europe", "FR": "Europe", "IT": "Europe",
-        "ES": "Europe", "PL": "Europe", "SE": "Europe", "NO": "Europe", "DK": "Europe", "RU": "Europe",
-        "BR": "South America", "MX": "North America", "JP": "Asia", "KR": "Asia", "AE": "Asia", "SG": "Asia",
-        "TH": "Asia", "ID": "Asia", "PH": "Asia", "MY": "Asia", "KH": "Asia", "VN": "Asia", "PK": "Asia",
-        "EG": "Africa", "KE": "Africa", "NG": "Africa", "ET": "Africa", "TZ": "Africa", "UG": "Africa",
-        "GH": "Africa", "MA": "Africa", "MO": "Asia", "LK": "Asia", "BD": "Asia", "IQ": "Asia",
-        "CO": "South America", "CL": "South America", "PE": "South America", "VE": "South America",
-        "BO": "South America", "PY": "South America", "SR": "South America", "EC": "South America",
-        "GT": "North America", "HT": "North America", "DO": "North America", "CR": "North America",
-        "CU": "North America", "JM": "North America", "BS": "North America", "NI": "North America",
-        "BZ": "North America", "PA": "North America", "SV": "North America", "GT": "North America",
-        "RU": "Europe", "BG": "Europe", "RO": "Europe", "UA": "Europe", "CZ": "Europe", "HU": "Europe",
-        "SK": "Europe", "SI": "Europe", "HR": "Europe", "RS": "Europe", "ME": "Europe", "MK": "Europe",
-        "FI": "Europe", "EE": "Europe", "LV": "Europe", "LT": "Europe", "IE": "Europe", "IS": "Europe",
-        "CH": "Europe", "LI": "Europe", "MT": "Europe", "CY": "Europe", "LU": "Europe", "MC": "Europe",
-        "VA": "Europe", "SM": "Europe", "TR": "Asia", "IL": "Asia", "LB": "Asia", "JO": "Asia",
-        "SY": "Asia", "SA": "Asia", "YE": "Asia", "OM": "Asia", "QA": "Asia", "KW": "Asia", "BH": "Asia",
-        "AE": "Asia", "IR": "Asia", "IQ": "Asia", "AF": "Asia", "PK": "Asia", "NP": "Asia", "BT": "Asia",
-        "BD": "Asia", "MV": "Asia", "LK": "Asia", "MM": "Asia", "TH": "Asia", "LA": "Asia", "VN": "Asia",
-        "KH": "Asia", "MY": "Asia", "SG": "Asia", "ID": "Asia", "TL": "Asia", "PH": "Asia", "TW": "Asia",
-        "MN": "Asia", "KP": "Asia", "KR": "Asia", "JP": "Asia", "CN": "Asia", "HK": "Asia", "MO": "Asia",
-        "BN": "Asia", "FJ": "Oceania", "PG": "Oceania", "SB": "Oceania", "VU": "Oceania", "NC": "Oceania",
-        "NZ": "Oceania", "AU": "Oceania", "WS": "Oceania", "TO": "Oceania", "TV": "Oceania", "KI": "Oceania",
-        "FM": "Oceania", "MH": "Oceania", "PW": "Oceania", "NR": "Oceania", "CK": "Oceania", "NU": "Oceania",
-        "TK": "Oceania", "WF": "Oceania", "AS": "Oceania", "GU": "Oceania", "MP": "Oceania", "PR": "North America",
-        "VI": "North America", "AI": "North America", "AW": "North America", "BS": "North America", "BB": "North America",
-        "BZ": "North America", "BM": "North America", "VG": "North America", "KY": "North America", "DM": "North America",
-        "DO": "North America", "GD": "North America", "GP": "North America", "HT": "North America", "JM": "North America",
-        "MQ": "North America", "MS": "North America", "AN": "North America", "TC": "North America", "TT": "North America",
-        "VC": "North America", "AG": "North America", "KN": "North America", "LC": "North America", "PM": "North America",
-        "VC": "North America", "SX": "North America", "CW": "North America", "BQ": "North America", "BL": "North America",
-        "MF": "North America", "GL": "North America", "GF": "South America", "GY": "South America", "SR": "South America",
-        "UY": "South America", "PY": "South America", "PE": "South America", "EC": "South America", "CO": "South America",
-        "VE": "South America", "BO": "South America", "CL": "South America", "AR": "South America", "BR": "South America",
-        "FK": "South America", "GS": "Antarctica", "TF": "Antarctica", "AQ": "Antarctica"
-    };
-
-    return continentMap[countryCode] || "Unknown";
-}
-
-// Error handling wrapper
-function handleErrors() {
-    window.onerror = function(message, source, lineno, colno, error) {
-        console.error('Error:', message, 'at', source, 'line', lineno);
-        
-        // Push error to dataLayer
-        window.dataLayer.push({
-            'event': 'consent_banner_error',
-            'error_message': message,
-            'error_source': source,
-            'error_line': lineno,
-            'error_column': colno,
-            'error_stack': error ? error.stack : '',
-            'timestamp': new Date().toISOString()
-        });
-        
-        return true; // Prevent error from showing in console
-    };
-}
-
-// Main execution
-document.addEventListener('DOMContentLoaded', function() {
-    if (!isDomainAllowed()) {
-        console.log('Cookie consent banner disabled for this domain');
-        return;
-    }
-    
-    // Initialize error handling
-    handleErrors();
-    
-    // Set default UET consent
-    setDefaultUetConsent();
-    
-    // Load analytics data
-    if (config.analytics.enabled) {
-        loadAnalyticsData();
-    }
-    
-    // Detect user location
-    detectUserLocation();
-    
-    // Scan and categorize cookies
-    const detectedCookies = scanAndCategorizeCookies();
-    
-    // Detect user language
-    const userLanguage = detectUserLanguage(locationData);
-    
-    // Inject HTML and initialize
-    injectConsentHTML(detectedCookies, userLanguage);
-    initializeCookieConsent(detectedCookies, userLanguage);
-    
-    // Accept on scroll if enabled
-    if (config.behavior.acceptOnScroll) {
-        let scrollTimer;
-        window.addEventListener('scroll', function() {
-            clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(function() {
-                if (window.pageYOffset > 200 && !getCookie('cookie_consent')) {
-                    acceptAllCookies();
-                    hideCookieBanner();
-                }
-            }, 500);
-        });
-    }
-    
-    // Accept on continue if enabled
-    if (config.behavior.acceptOnContinue) {
-        document.addEventListener('click', function(e) {
-            if (!getCookie('cookie_consent') && bannerShown) {
-                acceptAllCookies();
-                hideCookieBanner();
+            // Fallback to browser language detection
+            const browserLanguage = (navigator.language || 'en').split('-')[0];
+            if (translations[browserLanguage]) {
+                changeLanguage(browserLanguage);
             }
         });
+
+    // Helper function to determine continent from country code
+    function getContinentFromCountry(countryCode) {
+        if (!countryCode || countryCode === "Unknown") return "Unknown";
+        
+        // Map of country codes to continents
+        const countryToContinent = {
+            // Africa
+            'DZ': 'Africa', 'AO': 'Africa', 'BJ': 'Africa', 'BW': 'Africa', 'BF': 'Africa',
+            'BI': 'Africa', 'CV': 'Africa', 'CM': 'Africa', 'CF': 'Africa', 'TD': 'Africa',
+            'KM': 'Africa', 'CG': 'Africa', 'CD': 'Africa', 'CI': 'Africa', 'DJ': 'Africa',
+            'EG': 'Africa', 'GQ': 'Africa', 'ER': 'Africa', 'SZ': 'Africa', 'ET': 'Africa',
+            'GA': 'Africa', 'GM': 'Africa', 'GH': 'Africa', 'GN': 'Africa', 'GW': 'Africa',
+            'KE': 'Africa', 'LS': 'Africa', 'LR': 'Africa', 'LY': 'Africa', 'MG': 'Africa',
+            'MW': 'Africa', 'ML': 'Africa', 'MR': 'Africa', 'MU': 'Africa', 'YT': 'Africa',
+            'MA': 'Africa', 'MZ': 'Africa', 'NA': 'Africa', 'NE': 'Africa', 'NG': 'Africa',
+            'RE': 'Africa', 'RW': 'Africa', 'SH': 'Africa', 'ST': 'Africa', 'SN': 'Africa',
+            'SC': 'Africa', 'SL': 'Africa', 'SO': 'Africa', 'ZA': 'Africa', 'SS': 'Africa',
+            'SD': 'Africa', 'TZ': 'Africa', 'TG': 'Africa', 'TN': 'Africa', 'UG': 'Africa',
+            'EH': 'Africa', 'ZM': 'Africa', 'ZW': 'Africa',
+            
+            // Antarctica
+            'AQ': 'Antarctica', 'BV': 'Antarctica', 'TF': 'Antarctica', 'HM': 'Antarctica',
+            'GS': 'Antarctica',
+            
+            // Asia
+            'AF': 'Asia', 'AM': 'Asia', 'AZ': 'Asia', 'BH': 'Asia', 'BD': 'Asia',
+            'BT': 'Asia', 'IO': 'Asia', 'BN': 'Asia', 'KH': 'Asia', 'CN': 'Asia',
+            'CX': 'Asia', 'CC': 'Asia', 'CY': 'Asia', 'GE': 'Asia', 'HK': 'Asia',
+            'IN': 'Asia', 'ID': 'Asia', 'IR': 'Asia', 'IQ': 'Asia', 'IL': 'Asia',
+            'JP': 'Asia', 'JO': 'Asia', 'KZ': 'Asia', 'KP': 'Asia', 'KR': 'Asia',
+            'KW': 'Asia', 'KG': 'Asia', 'LA': 'Asia', 'LB': 'Asia', 'MO': 'Asia',
+            'MY': 'Asia', 'MV': 'Asia', 'MN': 'Asia', 'MM': 'Asia', 'NP': 'Asia',
+            'OM': 'Asia', 'PK': 'Asia', 'PS': 'Asia', 'PH': 'Asia', 'QA': 'Asia',
+            'SA': 'Asia', 'SG': 'Asia', 'LK': 'Asia', 'SY': 'Asia', 'TW': 'Asia',
+            'TJ': 'Asia', 'TH': 'Asia', 'TL': 'Asia', 'TR': 'Asia', 'TM': 'Asia',
+            'AE': 'Asia', 'UZ': 'Asia', 'VN': 'Asia', 'YE': 'Asia',
+            
+            // Europe
+            'AL': 'Europe', 'AD': 'Europe', 'AT': 'Europe', 'BY': 'Europe', 'BE': 'Europe',
+            'BA': 'Europe', 'BG': 'Europe', 'HR': 'Europe', 'CZ': 'Europe', 'DK': 'Europe',
+            'EE': 'Europe', 'FO': 'Europe', 'FI': 'Europe', 'FR': 'Europe', 'DE': 'Europe',
+            'GI': 'Europe', 'GR': 'Europe', 'GG': 'Europe', 'HU': 'Europe', 'IS': 'Europe',
+            'IE': 'Europe', 'IM': 'Europe', 'IT': 'Europe', 'JE': 'Europe', 'LV': 'Europe',
+            'LI': 'Europe', 'LT': 'Europe', 'LU': 'Europe', 'MK': 'Europe', 'MT': 'Europe',
+            'MD': 'Europe', 'MC': 'Europe', 'ME': 'Europe', 'NL': 'Europe', 'NO': 'Europe',
+            'PL': 'Europe', 'PT': 'Europe', 'RO': 'Europe', 'RU': 'Europe', 'SM': 'Europe',
+            'RS': 'Europe', 'SK': 'Europe', 'SI': 'Europe', 'ES': 'Europe', 'SE': 'Europe',
+            'CH': 'Europe', 'UA': 'Europe', 'GB': 'Europe', 'VA': 'Europe', 'AX': 'Europe',
+            
+            // North America
+            'AI': 'North America', 'AG': 'North America', 'BS': 'North America', 'BB': 'North America',
+            'BZ': 'North America', 'BM': 'North America', 'CA': 'North America', 'KY': 'North America',
+            'CR': 'North America', 'CU': 'North America', 'DM': 'North America', 'DO': 'North America',
+            'SV': 'North America', 'GL': 'North America', 'GD': 'North America', 'GP': 'North America',
+            'GT': 'North America', 'HT': 'North America', 'HN': 'North America', 'JM': 'North America',
+            'MQ': 'North America', 'MX': 'North America', 'MS': 'North America', 'NI': 'North America',
+            'PA': 'North America', 'PR': 'North America', 'BL': 'North America', 'KN': 'North America',
+            'LC': 'North America', 'MF': 'North America', 'PM': 'North America', 'VC': 'North America',
+            'SX': 'North America', 'TT': 'North America', 'TC': 'North America', 'US': 'North America',
+            'VG': 'North America', 'VI': 'North America',
+            
+            // Oceania
+            'AS': 'Oceania', 'AU': 'Oceania', 'CK': 'Oceania', 'FJ': 'Oceania', 'PF': 'Oceania',
+            'GU': 'Oceania', 'KI': 'Oceania', 'MH': 'Oceania', 'FM': 'Oceania', 'NR': 'Oceania',
+            'NC': 'Oceania', 'NZ': 'Oceania', 'NU': 'Oceania', 'NF': 'Oceania', 'MP': 'Oceania',
+            'PW': 'Oceania', 'PG': 'Oceania', 'PN': 'Oceania', 'WS': 'Oceania', 'SB': 'Oceania',
+            'TK': 'Oceania', 'TO': 'Oceania', 'TV': 'Oceania', 'UM': 'Oceania', 'VU': 'Oceania',
+            'WF': 'Oceania',
+            
+            // South America
+            'AR': 'South America', 'BO': 'South America', 'BR': 'South America', 'CL': 'South America',
+            'CO': 'South America', 'EC': 'South America', 'FK': 'South America', 'GF': 'South America',
+            'GY': 'South America', 'PY': 'South America', 'PE': 'South America', 'SR': 'South America',
+            'UY': 'South America', 'VE': 'South America'
+        };
+
+        return countryToContinent[countryCode] || "Unknown";
     }
+})();
+
+// Enhanced error handling for the entire script
+window.addEventListener('error', function(event) {
+    console.error('Script error:', event.message, 'in', event.filename, 'line:', event.lineno);
+    
+    // Push error to dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+        'event': 'cookieConsentError',
+        'error': event.message,
+        'filename': event.filename,
+        'lineNumber': event.lineno,
+        'timestamp': new Date().toISOString()
+    });
 });
 
-// Export functions if needed (for debugging or manual control)
-window.cookieConsent = {
+// Export functions to global scope if needed
+window.CookieConsent = {
     showBanner: showCookieBanner,
     hideBanner: hideCookieBanner,
     showSettings: showCookieSettings,
-    showAnalytics: showAnalyticsDashboard,
     acceptAll: acceptAllCookies,
     rejectAll: rejectAllCookies,
     saveSettings: saveCustomSettings,
     changeLanguage: changeLanguage,
     getConfig: function() { return config; },
-    getLocationData: function() { return locationData; },
-    getDetectedCookies: function() { return scanAndCategorizeCookies(); },
-    getConsentData: function() { 
+    setConfig: function(newConfig) { 
+        Object.assign(config, newConfig); 
+        console.log('Cookie consent config updated:', config);
+    },
+    getGeoData: function() { return window._geoData || {}; },
+    getConsentData: function() {
         const consent = getCookie('cookie_consent');
         return consent ? JSON.parse(consent) : null;
+    },
+    reset: function() {
+        // Clear consent cookie
+        document.cookie = 'cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        
+        // Clear analytics data if enabled
+        if (config.analytics.enabled) {
+            localStorage.removeItem('consentAnalytics');
+            consentAnalytics = {
+                total: { accepted: 0, rejected: 0, custom: 0 },
+                daily: {}
+            };
+        }
+        
+        // Clear dashboard auth
+        document.cookie = 'dashboard_auth=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        isDashboardAuthenticated = false;
+        
+        // Show banner again
+        if (config.behavior.autoShow) {
+            showCookieBanner();
+        }
+        
+        // Hide floating button
+        hideFloatingButton();
+        
+        console.log('Cookie consent has been reset');
     }
 };
+
+// Initialize Microsoft UET consent mode if enabled
+if (config.uetConfig.enabled) {
+    // If auto-detection is enabled, try to find the UET tag ID
+    if (config.uetConfig.autoDetectTagId) {
+        const uetScript = document.querySelector('script[src*="bat.bing.com"], script[src*="bat.bing.net"]');
+        if (uetScript) {
+            const src = uetScript.getAttribute('src');
+            const tagIdMatch = src.match(/[?&]id=([^&]+)/);
+            if (tagIdMatch && tagIdMatch[1]) {
+                config.uetConfig.defaultTagId = tagIdMatch[1];
+                console.log('Auto-detected Microsoft UET tag ID:', config.uetConfig.defaultTagId);
+            }
+        }
+    }
+    
+    // Set default UET consent
+    setDefaultUetConsent();
+}
+
+// Final initialization check
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    // If the document is already loaded, initialize immediately
+    setTimeout(initializeCookieConsent, 0);
+} else {
+    // Otherwise wait for DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', initializeCookieConsent);
+}
