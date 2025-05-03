@@ -2822,154 +2822,211 @@ function getCookie(name) {
     }
     return null;
 }
-
-// Tracking functions
-// Tracking functions - COMPLETE VERSION
+// Load analytics cookies (GA4 implementation)
 function loadAnalyticsCookies() {
-    console.log('Loading analytics cookies');
-    if (typeof ga === 'undefined') {
-        console.log('Google Analytics not loaded yet');
-    } else {
-        ga('set', 'anonymizeIp', true);
-        ga('send', 'pageview');
-        console.log('Google Analytics tracking enabled');
-        
-        window.dataLayer.push({
-            'event': 'analytics_cookies_loaded',
-            'timestamp': new Date().toISOString()
-        });
+    if (typeof gtag !== 'function') {
+        console.warn('Google Analytics (gtag.js) not loaded - analytics cookies not set');
+        return;
     }
     
-    if (typeof gtag === 'function') {
-        const gtagScript = Array.from(document.getElementsByTagName('script')).find(script => 
-            script.src.includes('googletagmanager.com/gtag/js')
-        );
-        
-        if (gtagScript) {
-            const match = gtagScript.src.match(/gtag\/js\?id=([^&]+)/);
-            if (match && match[1]) {
-                gtag('config', match[1], { 
-                    'anonymize_ip': true,
-                    'allow_google_signals': false,
-                    'allow_ad_personalization_signals': false
-                });
-                console.log('GA4 tracking enabled for measurement ID:', match[1]);
+    // Initialize GA4 with default configuration
+    gtag('config', 'G-XXXXXXXXXX', {
+        'anonymize_ip': true,
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false
+    });
+    
+    // Push event to dataLayer
+    window.dataLayer.push({
+        'event': 'analytics_cookies_loaded',
+        'timestamp': new Date().toISOString()
+    });
+}
+
+// Load advertising cookies (Microsoft UET implementation)
+function loadAdvertisingCookies() {
+    if (!config.uetConfig.enabled) return;
+    
+    // First verify UET tag exists
+    const uetTagId = detectUetTagId();
+    if (!uetTagId) {
+        console.warn('Microsoft UET tag not detected on page - advertising cookies not set');
+        return;
+    }
+    
+    // Initialize UET tracking
+    window.uetq = window.uetq || [];
+    window.uetq.push('track', 'PageView');
+    
+    // Push event to dataLayer
+    window.dataLayer.push({
+        'event': 'advertising_cookies_loaded',
+        'timestamp': new Date().toISOString(),
+        'uet_tag_id': uetTagId
+    });
+}
+
+// Load performance cookies
+function loadPerformanceCookies() {
+    // Placeholder for performance tracking cookies
+    // This would typically include things like Hotjar, Optimizely, etc.
+    
+    // Push event to dataLayer
+    window.dataLayer.push({
+        'event': 'performance_cookies_loaded',
+        'timestamp': new Date().toISOString()
+    });
+}
+
+// Detect Microsoft UET tag ID from the page
+function detectUetTagId() {
+    if (!config.uetConfig.autoDetectTagId) {
+        return config.uetConfig.defaultTagId;
+    }
+    
+    try {
+        // Look for UET tag in scripts
+        const scripts = document.getElementsByTagName('script');
+        for (let i = 0; i < scripts.length; i++) {
+            const script = scripts[i];
+            if (script.src.includes('bat.bing.com') && script.src.includes('uetq')) {
+                const match = script.src.match(/[?&]id=([^&]+)/);
+                if (match && match[1]) {
+                    return match[1];
+                }
             }
         }
+        
+        // Look for UET tag in noscript fallback
+        const noscripts = document.getElementsByTagName('noscript');
+        for (let i = 0; i < noscripts.length; i++) {
+            const noscript = noscripts[i];
+            if (noscript.innerHTML.includes('bat.bing.com') && noscript.innerHTML.includes('uetq')) {
+                const match = noscript.innerHTML.match(/id=([^&"\']+)/);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+        }
+        
+        // If not found, return default or null
+        return config.uetConfig.defaultTagId || null;
+    } catch (error) {
+        console.error('Error detecting UET tag ID:', error);
+        return config.uetConfig.defaultTagId || null;
     }
 }
 
-// MAIN INITIALIZATION - FIXED VERSION
+// Check if user is in EEA region for consent enforcement
+function isEEACountry(countryCode) {
+    const eeaCountries = [
+        'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 
+        'IS', 'IE', 'IT', 'LI', 'LV', 'LT', 'LU', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 
+        'SK', 'SI', 'ES', 'SE', 'CH', 'GB'
+    ];
+    return eeaCountries.includes(countryCode);
+}
+
+// Main entry point when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Verify domain is allowed
+    // Check if domain is allowed
     if (!isDomainAllowed()) {
-        console.log('Cookie consent disabled for this domain');
+        console.log('Cookie consent banner not shown - domain not allowed');
         return;
     }
-
-    // 2. Load analytics data
+    
+    // Load analytics data
     loadAnalyticsData();
-
-    // 3. Set default consents
+    
+    // Set default consent mode (deny all except security)
     setDefaultUetConsent();
-    gtag('consent', 'default', {
-        'ad_storage': 'denied',
-        'analytics_storage': 'denied',
-        'ad_user_data': 'denied',
-        'ad_personalization': 'denied',
-        'personalization_storage': 'denied',
-        'functionality_storage': 'denied',
-        'security_storage': 'granted'
-    });
-
-    // 4. Scan cookies and detect language
+    
+    // Scan and categorize existing cookies
     const detectedCookies = scanAndCategorizeCookies();
-    const userLanguage = detectUserLanguage();
-
-    // 5. INJECT THE BANNER HTML - THIS WAS LIKELY MISSING
+    
+    // Detect user language
+    const geoData = {
+        country: getCookie('country') || 'Unknown',
+        region: getCookie('region') || 'Unknown',
+        city: getCookie('city') || 'Unknown'
+    };
+    
+    const userLanguage = detectUserLanguage(geoData);
+    
+    // Check geo-targeting restrictions
+    if (!checkGeoTargeting(geoData)) {
+        console.log('Cookie consent banner not shown - geo-targeting restrictions');
+        return;
+    }
+    
+    // Inject HTML into the page
     injectConsentHTML(detectedCookies, userLanguage);
-
-    // 6. Initialize with proper timing
-    setTimeout(() => {
-        initializeCookieConsent(detectedCookies, userLanguage);
-    }, 100);
-
-    // 7. Add scroll acceptance if enabled
+    
+    // Initialize the consent banner
+    initializeCookieConsent(detectedCookies, userLanguage);
+    
+    // Handle scroll acceptance if enabled
     if (config.behavior.acceptOnScroll) {
         let scrollTimer;
         window.addEventListener('scroll', function() {
-            if (bannerShown) {
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(() => {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(function() {
+                if (bannerShown && window.scrollY > 200) {
                     acceptAllCookies();
                     hideCookieBanner();
-                }, 2000);
+                    if (config.behavior.showFloatingButton) {
+                        showFloatingButton();
+                    }
+                }
+            }, 200);
+        });
+    }
+    
+    // Handle continue acceptance if enabled
+    if (config.behavior.acceptOnContinue) {
+        document.addEventListener('click', function(e) {
+            if (bannerShown && !e.target.closest('#cookieConsentBanner')) {
+                acceptAllCookies();
+                hideCookieBanner();
+                if (config.behavior.showFloatingButton) {
+                    showFloatingButton();
+                }
             }
         });
     }
 });
 
-// CRITICAL FIXES FOR BANNER DISPLAY
-function showCookieBanner() {
-    const banner = document.getElementById('cookieConsentBanner');
-    if (!banner) {
-        console.error('Banner element not found!');
-        return;
+// Handle window load event to ensure all elements are present
+window.addEventListener('load', function() {
+    // Re-check for UET tag after all scripts have loaded
+    if (config.uetConfig.enabled) {
+        const uetTagId = detectUetTagId();
+        if (uetTagId) {
+            window.dataLayer.push({
+                'event': 'uet_tag_detected',
+                'uet_tag_id': uetTagId,
+                'timestamp': new Date().toISOString()
+            });
+        }
     }
     
-    banner.style.display = 'block';
-    // Force reflow before adding class
-    void banner.offsetWidth;
-    banner.classList.add('show');
-    bannerShown = true;
-    
-    // Push banner shown event
-    window.dataLayer.push({
-        'event': 'cookie_banner_shown',
-        'timestamp': new Date().toISOString()
-    });
-}
+    // Check if we need to show the floating button
+    const consentGiven = getCookie('cookie_consent');
+    if (consentGiven && config.behavior.showFloatingButton) {
+        showFloatingButton();
+    }
+});
 
-// ENSURE PROPER CSS IS APPLIED
-const dynamicStyles = `
-.cookie-consent-banner {
-    position: fixed;
-    bottom: 20px;
-    ${config.behavior.bannerPosition === 'left' ? 'left: 20px;' : 'right: 20px;'}
-    width: ${config.bannerStyle.width};
-    background: ${config.bannerStyle.background};
-    border-radius: ${config.bannerStyle.borderRadius};
-    box-shadow: ${config.bannerStyle.boxShadow};
-    z-index: 9999;
-    padding: ${config.bannerStyle.padding};
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    display: none;
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all ${config.behavior.bannerAnimation.duration}s ${config.behavior.bannerAnimation.easing};
-}
-
-.cookie-consent-banner.show {
-    display: block;
-    transform: translateY(0);
-    opacity: 1;
-}
-`;
-
-// Inject styles dynamically
-const styleElement = document.createElement('style');
-styleElement.innerHTML = dynamicStyles;
-document.head.appendChild(styleElement);
-
-// FALLBACK INITIALIZATION
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(() => {
-        if (!document.getElementById('cookieConsentBanner')) {
-            console.log('Late initialization');
-            const detectedCookies = scanAndCategorizeCookies();
-            const userLanguage = detectUserLanguage();
-            injectConsentHTML(detectedCookies, userLanguage);
-            initializeCookieConsent(detectedCookies, userLanguage);
-        }
-    }, 500);
-}
+// Export functions for global access if needed
+window.CookieConsent = {
+    showBanner: showCookieBanner,
+    hideBanner: hideCookieBanner,
+    showSettings: showCookieSettings,
+    acceptAll: acceptAllCookies,
+    rejectAll: rejectAllCookies,
+    saveSettings: saveCustomSettings,
+    changeLanguage: changeLanguage,
+    getConfig: function() { return config; },
+    getTranslations: function() { return translations; },
+    getAnalytics: function() { return consentAnalytics; }
+};
