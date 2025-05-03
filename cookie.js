@@ -518,68 +518,65 @@ let locationData = {
 };
 
 // Function to fetch location data
-function fetchLocationData() {
-    var apiKey = '4c1e5d00e0ac93'; // Your API key from ipinfo.io
+async function fetchLocationData() {
+    var apiKey = '4c1e5d00e0ac93'; // Replace with a valid API key if necessary
 
-    // Fallback for browsers that don't support fetch
-    if (typeof fetch === 'undefined') {
-        var script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/fetch/3.6.2/fetch.min.js';
-        document.head.appendChild(script);
-        
-        // Try again after a delay
-        setTimeout(fetchLocationData, 1000);
-        return;
-    }
+    try {
+        const response = await fetch('https://ipinfo.io/json?token=' + apiKey);
+        if (!response.ok) {
+            throw new Error('Failed to fetch location data from ipinfo.io');
+        }
+        const payload = await response.json();
 
-    fetch('https://ipinfo.io/json?token=' + apiKey)
-        .then(function(response) {
-            // Check if the response is successful
-            if (!response.ok) {
-                throw new Error('Failed to fetch location data from ipinfo.io');
-            }
-            return response.json();
-        })
-        .then(function(payload) {
-            // Use fallback values if properties do not exist
-            locationData.country = (payload && payload.country) ? payload.country : "Unknown";
-            locationData.city = (payload && payload.city) ? payload.city : "Unknown";
-            locationData.zip = (payload && payload.postal) ? payload.postal : "Unknown";
-            locationData.ip = (payload && payload.ip) ? payload.ip : "Unknown";
-            locationData.street = (payload && payload.loc) ? payload.loc : "Unknown";
-            locationData.region = (payload && payload.region) ? payload.region : "Unknown";
-            locationData.timezone = (payload && payload.timezone) ? payload.timezone : "Unknown";
-            locationData.isp = (payload && payload.org) ? payload.org : "Unknown";
-            locationData.language = (navigator.language || "Unknown").split("-")[0];
-            locationData.continent = getContinentFromCountry(locationData.country);
+        // Update locationData with payload or fallback values
+        locationData.country = payload.country || "Unknown";
+        locationData.city = payload.city || "Unknown";
+        locationData.zip = payload.postal || "Unknown";
+        locationData.ip = payload.ip || "Unknown";
+        locationData.street = payload.loc || "Unknown";
+        locationData.region = payload.region || "Unknown";
+        locationData.timezone = payload.timezone || "Unknown";
+        locationData.isp = payload.org || "Unknown";
+        locationData.language = (navigator.language || "Unknown").split("-")[0];
+        locationData.continent = getContinentFromCountry(locationData.country);
 
-            // Push data to the dataLayer for Google Tag Manager
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                'event': 'locationRetrieved',
-                'continent': locationData.continent,
-                'country': locationData.country,
-                'city': locationData.city,
-                'zip': locationData.zip,
-                'ip': locationData.ip,
-                'street': locationData.street,
-                'region': locationData.region,
-                'timezone': locationData.timezone,
-                'isp': locationData.isp,
-                'language': locationData.language
-            });
-
-            console.log('Location Data Sent to dataLayer:', locationData);
-        })
-        .catch(function(error) {
-            console.error('Error fetching location:', error);
-            // Push error details to dataLayer if needed
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                'event': 'locationError',
-                'error': error.message
-            });
+        // Push to dataLayer
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'locationRetrieved',
+            'continent': locationData.continent,
+            'country': locationData.country,
+            'city': locationData.city,
+            'zip': locationData.zip,
+            'ip': locationData.ip,
+            'street': locationData.street,
+            'region': locationData.region,
+            'timezone': locationData.timezone,
+            'isp': locationData.isp,
+            'language': locationData.language
         });
+
+        console.log('Location Data Sent to dataLayer:', locationData);
+    } catch (error) {
+        console.error('Error fetching location:', error);
+        // Ensure fallback values are set on error
+        locationData.country = "Unknown";
+        locationData.city = "Unknown";
+        locationData.zip = "Unknown";
+        locationData.ip = "Unknown";
+        locationData.street = "Unknown";
+        locationData.region = "Unknown";
+        locationData.timezone = "Unknown";
+        locationData.isp = "Unknown";
+        locationData.language = (navigator.language || "Unknown").split("-")[0];
+        locationData.continent = "Unknown";
+
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'locationError',
+            'error': error.message
+        });
+    }
 }
 
 // Function to map countries to their respective continents
@@ -2841,7 +2838,7 @@ function loadPerformanceCookies() {
 }
 
 // Main execution flow
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check if domain is allowed
     if (!isDomainAllowed()) {
         console.log('Cookie consent banner not shown - domain not allowed');
@@ -2856,15 +2853,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set default UET consent
     setDefaultUetConsent();
 
-    // Fetch location data if geo-targeting is enabled
-    if (config.geoConfig.allowedCountries.length > 0 || 
-        config.geoConfig.allowedRegions.length > 0 || 
-        config.geoConfig.allowedCities.length > 0 ||
-        config.geoConfig.blockedCountries.length > 0 || 
-        config.geoConfig.blockedRegions.length > 0 || 
-        config.geoConfig.blockedCities.length > 0) {
-        fetchLocationData();
-    }
+    // Fetch location data asynchronously
+    await fetchLocationData();
 
     // Scan and categorize existing cookies
     const detectedCookies = scanAndCategorizeCookies();
@@ -2886,7 +2876,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(function() {
                     const scrollPercentage = (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100;
-                    if (scrollPercentage > 30) { // 30% scroll threshold
+                    if (scrollPercentage > 30) {
                         acceptAllCookies();
                         hideCookieBanner();
                         if (config.behavior.showFloatingButton) {
