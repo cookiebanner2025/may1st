@@ -540,23 +540,7 @@ async function fetchLocationData() {
         locationData.language = (navigator.language || "Unknown").split("-")[0];
         locationData.continent = getContinentFromCountry(locationData.country);
 
-        // Push to dataLayer
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-            'event': 'locationRetrieved',
-            'continent': locationData.continent,
-            'country': locationData.country,
-            'city': locationData.city,
-            'zip': locationData.zip,
-            'ip': locationData.ip,
-            'street': locationData.street,
-            'region': locationData.region,
-            'timezone': locationData.timezone,
-            'isp': locationData.isp,
-            'language': locationData.language
-        });
-
-        console.log('Location Data Sent to dataLayer:', locationData);
+        console.log('Location Data Fetched:', locationData);
     } catch (error) {
         console.error('Error fetching location:', error);
         // Ensure fallback values are set on error
