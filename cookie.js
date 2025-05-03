@@ -2830,6 +2830,8 @@ function loadAnalyticsCookies() {
 
 function loadAdvertisingCookies() {
     console.log('Loading advertising cookies');
+    
+    // Facebook Pixel
     if (typeof fbq === 'undefined') {
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -2839,7 +2841,40 @@ function loadAdvertisingCookies() {
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window,document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', 'YOUR_FACEBOOK_PIXEL_ID'); // Replace with your actual Pixel ID
+        fbq('init', 'YOUR_FACEBOOK_PIXEL_ID');
         fbq('track', 'PageView');
+    }
+
+    // Google Analytics/GTag
+    if (typeof gtag === 'undefined') {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'YOUR_GA_TRACKING_ID', { 
+            'anonymize_ip': true,
+            'cookie_flags': 'SameSite=None;Secure'
+        });
+    }
+
+    // LinkedIn Insight Tag
+    if (typeof _linkedin_data_partner_id === 'undefined') {
+        _linkedin_data_partner_id = 'YOUR_LINKEDIN_ID';
+        !function(){var s=document.getElementsByTagName("script")[0];
+        var b=document.createElement("script");
+        b.type="text/javascript";b.async=true;
+        b.src="https://snap.licdn.com/li.lms-analytics/insight.min.js";
+        s.parentNode.insertBefore(b,s);}();
+    }
+
+    // Twitter Pixel
+    if (typeof twq === 'undefined') {
+        !function(e,t,n,s,u,a){
+        e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
+        },s.version='1',s.queue=[],u=t.createElement(n),u.async=!0,
+        u.src='https://static.ads-twitter.com/uwt.js',
+        a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}
+        (window,document,'script');
+        twq('init','YOUR_TWITTER_PIXEL_ID');
+        twq('track','PageView');
     }
 }
