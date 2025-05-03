@@ -2822,211 +2822,121 @@ function getCookie(name) {
     }
     return null;
 }
-// Load analytics cookies (GA4 implementation)
-function loadAnalyticsCookies() {
-    if (typeof gtag !== 'function') {
-        console.warn('Google Analytics (gtag.js) not loaded - analytics cookies not set');
-        return;
-    }
-    
-    // Initialize GA4 with default configuration
-    gtag('config', 'G-XXXXXXXXXX', {
-        'anonymize_ip': true,
-        'allow_google_signals': false,
-        'allow_ad_personalization_signals': false
-    });
-    
-    // Push event to dataLayer
-    window.dataLayer.push({
-        'event': 'analytics_cookies_loaded',
-        'timestamp': new Date().toISOString()
-    });
-}
-
-// Load advertising cookies (Microsoft UET implementation)
-function loadAdvertisingCookies() {
-    if (!config.uetConfig.enabled) return;
-    
-    // First verify UET tag exists
-    const uetTagId = detectUetTagId();
-    if (!uetTagId) {
-        console.warn('Microsoft UET tag not detected on page - advertising cookies not set');
-        return;
-    }
-    
-    // Initialize UET tracking
-    window.uetq = window.uetq || [];
-    window.uetq.push('track', 'PageView');
-    
-    // Push event to dataLayer
-    window.dataLayer.push({
-        'event': 'advertising_cookies_loaded',
-        'timestamp': new Date().toISOString(),
-        'uet_tag_id': uetTagId
-    });
-}
-
-// Load performance cookies
-function loadPerformanceCookies() {
-    // Placeholder for performance tracking cookies
-    // This would typically include things like Hotjar, Optimizely, etc.
-    
-    // Push event to dataLayer
-    window.dataLayer.push({
-        'event': 'performance_cookies_loaded',
-        'timestamp': new Date().toISOString()
-    });
-}
-
 // Detect Microsoft UET tag ID from the page
 function detectUetTagId() {
     if (!config.uetConfig.autoDetectTagId) {
         return config.uetConfig.defaultTagId;
     }
-    
-    try {
-        // Look for UET tag in scripts
-        const scripts = document.getElementsByTagName('script');
-        for (let i = 0; i < scripts.length; i++) {
-            const script = scripts[i];
-            if (script.src.includes('bat.bing.com') && script.src.includes('uetq')) {
-                const match = script.src.match(/[?&]id=([^&]+)/);
-                if (match && match[1]) {
-                    return match[1];
-                }
+
+    // Look for UET tag in script elements
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+        if (script.src.includes('bat.bing.com') && script.src.includes('uetq')) {
+            const matches = script.src.match(/[?&]id=([^&]+)/);
+            if (matches && matches[1]) {
+                return matches[1];
             }
         }
-        
-        // Look for UET tag in noscript fallback
-        const noscripts = document.getElementsByTagName('noscript');
-        for (let i = 0; i < noscripts.length; i++) {
-            const noscript = noscripts[i];
-            if (noscript.innerHTML.includes('bat.bing.com') && noscript.innerHTML.includes('uetq')) {
-                const match = noscript.innerHTML.match(/id=([^&"\']+)/);
-                if (match && match[1]) {
-                    return match[1];
-                }
-            }
-        }
-        
-        // If not found, return default or null
-        return config.uetConfig.defaultTagId || null;
-    } catch (error) {
-        console.error('Error detecting UET tag ID:', error);
-        return config.uetConfig.defaultTagId || null;
     }
+
+    // Look for UET tag in noscript elements
+    const noscripts = document.getElementsByTagName('noscript');
+    for (let i = 0; i < noscripts.length; i++) {
+        const noscript = noscripts[i];
+        if (noscript.innerHTML.includes('bat.bing.com') && noscript.innerHTML.includes('uetq')) {
+            const matches = noscript.innerHTML.match(/[?&]id=([^&]+)/);
+            if (matches && matches[1]) {
+                return matches[1];
+            }
+        }
+    }
+
+    return config.uetConfig.defaultTagId;
 }
 
-// Check if user is in EEA region for consent enforcement
-function isEEACountry(countryCode) {
-    const eeaCountries = [
-        'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 
-        'IS', 'IE', 'IT', 'LI', 'LV', 'LT', 'LU', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 
-        'SK', 'SI', 'ES', 'SE', 'CH', 'GB'
-    ];
-    return eeaCountries.includes(countryCode);
-}
-
-// Main entry point when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if domain is allowed
-    if (!isDomainAllowed()) {
-        console.log('Cookie consent banner not shown - domain not allowed');
+// Load analytics cookies (GA4 implementation)
+function loadAnalyticsCookies() {
+    if (typeof gtag !== 'function') {
+        console.warn('Google Analytics (gtag.js) not loaded, skipping analytics cookies');
         return;
     }
-    
+
+    // Initialize GA4 with the default measurement ID
+    const measurementId = window.GA_MEASUREMENT_ID || 'G-XXXXXXXXXX'; // Replace with your actual ID
+    gtag('config', measurementId, {
+        'anonymize_ip': true,
+        'allow_google_signals': false,
+        'allow_ad_personalization_signals': false
+    });
+
+    console.log('Google Analytics cookies loaded');
+}
+
+// Load advertising cookies (Microsoft UET implementation)
+function loadAdvertisingCookies() {
+    if (!config.uetConfig.enabled) {
+        return;
+    }
+
+    const uetTagId = detectUetTagId();
+    if (!uetTagId) {
+        console.warn('Microsoft UET tag ID not found, skipping advertising cookies');
+        return;
+    }
+
+    // Check if UET is already loaded
+    if (window.uetq && Array.isArray(window.uetq)) {
+        console.log('Microsoft UET already loaded');
+        return;
+    }
+
+    // Load UET script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://bat.bing.com/bat.js?id=${uetTagId}`;
+    document.head.appendChild(script);
+
+    console.log('Microsoft UET advertising cookies loaded');
+}
+
+// Load performance cookies
+function loadPerformanceCookies() {
+    // Implement any performance tracking cookies here
+    console.log('Performance cookies loaded');
+}
+
+// Initialize the consent manager when DOM is ready
+function initConsentManager() {
+    if (!isDomainAllowed()) {
+        console.log('Cookie consent not initialized - current domain not allowed');
+        return;
+    }
+
     // Load analytics data
     loadAnalyticsData();
-    
-    // Set default consent mode (deny all except security)
-    setDefaultUetConsent();
-    
+
+    // Set default UET consent if enabled
+    if (config.uetConfig.enabled) {
+        setDefaultUetConsent();
+    }
+
     // Scan and categorize existing cookies
     const detectedCookies = scanAndCategorizeCookies();
-    
+
     // Detect user language
-    const geoData = {
-        country: getCookie('country') || 'Unknown',
-        region: getCookie('region') || 'Unknown',
-        city: getCookie('city') || 'Unknown'
-    };
-    
-    const userLanguage = detectUserLanguage(geoData);
-    
-    // Check geo-targeting restrictions
-    if (!checkGeoTargeting(geoData)) {
-        console.log('Cookie consent banner not shown - geo-targeting restrictions');
-        return;
-    }
-    
-    // Inject HTML into the page
+    const userLanguage = detectUserLanguage(window.geoData || {});
+
+    // Inject HTML elements
     injectConsentHTML(detectedCookies, userLanguage);
-    
-    // Initialize the consent banner
+
+    // Initialize the consent manager
     initializeCookieConsent(detectedCookies, userLanguage);
-    
-    // Handle scroll acceptance if enabled
-    if (config.behavior.acceptOnScroll) {
-        let scrollTimer;
-        window.addEventListener('scroll', function() {
-            clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(function() {
-                if (bannerShown && window.scrollY > 200) {
-                    acceptAllCookies();
-                    hideCookieBanner();
-                    if (config.behavior.showFloatingButton) {
-                        showFloatingButton();
-                    }
-                }
-            }, 200);
-        });
-    }
-    
-    // Handle continue acceptance if enabled
-    if (config.behavior.acceptOnContinue) {
-        document.addEventListener('click', function(e) {
-            if (bannerShown && !e.target.closest('#cookieConsentBanner')) {
-                acceptAllCookies();
-                hideCookieBanner();
-                if (config.behavior.showFloatingButton) {
-                    showFloatingButton();
-                }
-            }
-        });
-    }
-});
+}
 
-// Handle window load event to ensure all elements are present
-window.addEventListener('load', function() {
-    // Re-check for UET tag after all scripts have loaded
-    if (config.uetConfig.enabled) {
-        const uetTagId = detectUetTagId();
-        if (uetTagId) {
-            window.dataLayer.push({
-                'event': 'uet_tag_detected',
-                'uet_tag_id': uetTagId,
-                'timestamp': new Date().toISOString()
-            });
-        }
-    }
-    
-    // Check if we need to show the floating button
-    const consentGiven = getCookie('cookie_consent');
-    if (consentGiven && config.behavior.showFloatingButton) {
-        showFloatingButton();
-    }
-});
-
-// Export functions for global access if needed
-window.CookieConsent = {
-    showBanner: showCookieBanner,
-    hideBanner: hideCookieBanner,
-    showSettings: showCookieSettings,
-    acceptAll: acceptAllCookies,
-    rejectAll: rejectAllCookies,
-    saveSettings: saveCustomSettings,
-    changeLanguage: changeLanguage,
-    getConfig: function() { return config; },
-    getTranslations: function() { return translations; },
-    getAnalytics: function() { return consentAnalytics; }
-};
+// Start the consent manager when DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initConsentManager);
+} else {
+    initConsentManager();
+}
