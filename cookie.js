@@ -20,7 +20,7 @@ const config = {
         bannerDelay: 0,
         rememberLanguage: true,
         acceptOnScroll: false,
-        acceptOnContinue: true,
+        acceptOnContinue: false,
         showFloatingButton: true,
         showAdminButton: true,
         floatingButtonPosition: 'left',
