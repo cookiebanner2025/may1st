@@ -1308,52 +1308,47 @@ async function fetchLocationData() {
         const payload = await response.json();
 
         // Update locationData with payload or fallback values
-        locationData.country = payload.country || "Unknown";
-        locationData.city = payload.city || "Unknown";
-        locationData.zip = payload.postal || "Unknown";
-        locationData.ip = payload.ip || "Unknown";
-        locationData.street = payload.loc || "Unknown";
-        locationData.region = payload.region || "Unknown";
-        locationData.timezone = payload.timezone || "Unknown";
-        locationData.isp = payload.org || "Unknown";
-        locationData.language = (navigator.language || "Unknown").split("-")[0];
-        locationData.continent = getContinentFromCountry(locationData.country);
+        locationData = {
+            continent: getContinentFromCountry(payload.country) || "Unknown",
+            country: payload.country || "Unknown",
+            city: payload.city || "Unknown",
+            zip: payload.postal || "Unknown",
+            ip: payload.ip || "Unknown",
+            street: payload.loc || "Unknown",
+            region: payload.region || "Unknown",
+            timezone: payload.timezone || "Unknown",
+            isp: payload.org || "Unknown",
+            language: (navigator.language || "Unknown").split("-")[0]
+        };
 
-        // Push to dataLayer
-        window.dataLayer = window.dataLayer || [];
+        // Push to dataLayer with location_data object
         window.dataLayer.push({
             'event': 'locationRetrieved',
-            'continent': locationData.continent,
-            'country': locationData.country,
-            'city': locationData.city,
-            'zip': locationData.zip,
-            'ip': locationData.ip,
-            'street': locationData.street,
-            'region': locationData.region,
-            'timezone': locationData.timezone,
-            'isp': locationData.isp,
-            'language': locationData.language
+            'location_data': locationData,
+            'timestamp': new Date().toISOString()
         });
 
         console.log('Location Data Sent to dataLayer:', locationData);
     } catch (error) {
         console.error('Error fetching location:', error);
         // Ensure fallback values are set on error
-        locationData.country = "Unknown";
-        locationData.city = "Unknown";
-        locationData.zip = "Unknown";
-        locationData.ip = "Unknown";
-        locationData.street = "Unknown";
-        locationData.region = "Unknown";
-        locationData.timezone = "Unknown";
-        locationData.isp = "Unknown";
-        locationData.language = (navigator.language || "Unknown").split("-")[0];
-        locationData.continent = "Unknown";
+        locationData = {
+            continent: "Unknown",
+            country: "Unknown",
+            city: "Unknown",
+            zip: "Unknown",
+            ip: "Unknown",
+            street: "Unknown",
+            region: "Unknown",
+            timezone: "Unknown",
+            isp: "Unknown",
+            language: (navigator.language || "Unknown").split("-")[0]
+        };
 
-        window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
             'event': 'locationError',
-            'error': error.message
+            'error': error.message,
+            'location_data': locationData
         });
     }
 }
@@ -3341,23 +3336,23 @@ function acceptAllCookies() {
     }
     
     // Push dataLayer event for consent acceptance with location data
-    window.dataLayer.push({
-        'event': 'cookie_consent_accepted',
-        'consent_mode': {
-            'ad_storage': 'granted',
-            'analytics_storage': 'granted',
-            'ad_user_data': 'granted',
-            'ad_personalization': 'granted',
-            'personalization_storage': 'granted',
-            'functionality_storage': 'granted',
-            'security_storage': 'granted'
-        },
-        'gcs': 'G111',
-        'consent_status': 'accepted',
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+window.dataLayer.push({
+    'event': 'cookie_consent_accepted',
+    'consent_mode': {
+        'ad_storage': 'granted',
+        'analytics_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'personalization_storage': 'granted',
+        'functionality_storage': 'granted',
+        'security_storage': 'granted'
+    },
+    'gcs': 'G111',
+    'consent_status': 'accepted',
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 function rejectAllCookies() {
@@ -3383,23 +3378,23 @@ function rejectAllCookies() {
     }
     
     // Push dataLayer event for consent rejection with location data
-    window.dataLayer.push({
-        'event': 'cookie_consent_rejected',
-        'consent_mode': {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'personalization_storage': 'denied',
-            'functionality_storage': 'denied',
-            'security_storage': 'granted'
-        },
-        'gcs': 'G100',
-        'consent_status': 'rejected',
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+ window.dataLayer.push({
+    'event': 'cookie_consent_rejected',
+    'consent_mode': {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'personalization_storage': 'denied',
+        'functionality_storage': 'denied',
+        'security_storage': 'granted'
+    },
+    'gcs': 'G100',
+    'consent_status': 'rejected',
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 function saveCustomSettings() {
@@ -3455,15 +3450,15 @@ function saveCustomSettings() {
         'security_storage': 'granted'
     };
     
-    window.dataLayer.push({
-        'event': 'cookie_consent_custom',
-        'consent_mode': consentStates,
-        'gcs': gcsSignal,
-        'consent_status': 'custom',
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+ window.dataLayer.push({
+    'event': 'cookie_consent_custom',
+    'consent_mode': consentStates,
+    'gcs': gcsSignal,
+    'consent_status': 'custom',
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 // Helper functions
@@ -3548,29 +3543,29 @@ function updateConsentMode(consentData) {
         });
         
         // Push UET consent event to dataLayer with the exact requested format
-        window.dataLayer.push({
-            'event': 'uet_consent_update',
-            'uet_consent': {
-                'ad_storage': uetConsentState,
-                'status': consentData.status,
-                'src': 'update',
-                'asc': uetConsentState === 'granted' ? 'G' : 'D',
-                'timestamp': new Date().toISOString()
-            },
-            'location_data': locationData
-        });
+      window.dataLayer.push({
+    'event': 'uet_consent_update',
+    'uet_consent': {
+        'ad_storage': uetConsentState,
+        'status': consentData.status,
+        'src': 'update',
+        'asc': uetConsentState === 'granted' ? 'G' : 'D',
+        'timestamp': new Date().toISOString()
+    },
+    'location_data': locationData
+});
     }
     
     // Push general consent update to dataLayer
-    window.dataLayer.push({
-        'event': 'cookie_consent_update',
-        'consent_mode': consentStates,
-        'gcs': gcsSignal,
-        'consent_status': consentData.status,
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+ window.dataLayer.push({
+    'event': 'cookie_consent_update',
+    'consent_mode': consentStates,
+    'gcs': gcsSignal,
+    'consent_status': consentData.status,
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 // Cookie management functions
