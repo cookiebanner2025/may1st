@@ -331,23 +331,87 @@ function setDefaultUetConsent() {
 }
 
 // Enhanced cookie database with detailed descriptions
-// Enhanced cookie database with detailed descriptions
 const cookieDatabase = {
-    // GA4 Cookies
-    '_ga': { category: 'analytics', duration: '730 days', description: 'Google Analytics - Used to distinguish users' },
-    '_gid': { category: 'analytics', duration: '1 day', description: 'Google Analytics - Used to distinguish users' },
-    '_gat': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
-    '_gat_gtag': { category: 'analytics', duration: '1 minute', description: 'Google Analytics - Used to throttle request rate' },
+    // Existing cookies
+    '_gcl': { category: 'advertising', duration: '90 days', description: 'Google Click Identifier - Tracks ad clicks and conversions' },
+    '_gcl_au': { category: 'advertising', duration: '90 days', description: 'Google Ads conversion tracking' },
+    'gclid': { category: 'advertising', duration: '30 days', description: 'Google Click ID - Tracks PPC ad clicks' },
+    'IDE': { category: 'advertising', duration: '390 days', description: 'Google DoubleClick - Used for retargeting' },
+    'NID': { category: 'advertising', duration: '180 days', description: 'Google Ads preferences' },
+    '_gat_gtag': { category: 'advertising', duration: '1 minute', description: 'Google Tag Manager throttle' },
+    'msclkid': { category: 'advertising', duration: '30 days', description: 'Microsoft Click ID - Tracks ad clicks' },
+    '_uetmsdns': { category: 'advertising', duration: 'Session', description: 'Microsoft UET consent mode cookie' },
+    'MUID': { category: 'advertising', duration: '390 days', description: 'Microsoft Universal ID' },
+    '_uetsid': { category: 'advertising', duration: '1 day', description: 'Bing Ads session ID' },
+    '_uetvid': { category: 'advertising', duration: '390 days', description: 'Bing Ads visitor ID' },
+    '_fbp': { category: 'advertising', duration: '90 days', description: 'Facebook Pixel - Conversion tracking' },
+    'fr': { category: 'advertising', duration: '90 days', description: 'Facebook browser ID' },
+    'datr': { category: 'advertising', duration: '730 days', description: 'Facebook browser identification' },
+    '_ttp': { category: 'advertising', duration: '390 days', description: 'TikTok Pixel tracking' },
+    'ttclid': { category: 'advertising', duration: '30 days', description: 'TikTok Click ID' },
+    'tt_sessionid': { category: 'advertising', duration: '1 day', description: 'TikTok session' },
+    'lidc': { category: 'advertising', duration: '1 day', description: 'LinkedIn Ads routing' },
+    'bcookie': { category: 'advertising', duration: '730 days', description: 'LinkedIn Browser ID' },
+    'li_sugr': { category: 'advertising', duration: '90 days', description: 'LinkedIn user tracking' },
+    '_pinterest_ct_ua': { category: 'advertising', duration: '365 days', description: 'Pinterest Click Tracking' },
+    '_pinterest_sess': { category: 'advertising', duration: '1 day', description: 'Pinterest session' },
+    'cm_sub': { category: 'advertising', duration: '365 days', description: 'Pinterest conversion' },
+    'obuid': { category: 'advertising', duration: '365 days', description: 'Outbrain user ID' },
+    'obcl': { category: 'advertising', duration: '30 days', description: 'Outbrain click tracking' },
+    'personalization_id': { category: 'advertising', duration: '730 days', description: 'Twitter personalization' },
+    'guest_id': { category: 'advertising', duration: '730 days', description: 'Twitter guest tracking' },
+    'sc_at': { category: 'advertising', duration: '365 days', description: 'Snapchat Ads tracking' },
+    '_scid': { category: 'advertising', duration: '365 days', description: 'Snapchat user ID' },
+    'rdt_uuid': { category: 'advertising', duration: '365 days', description: 'Reddit unique user ID' },
+    'session_tracker': { category: 'advertising', duration: '1 day', description: 'Reddit session' },
+    'criteo': { category: 'advertising', duration: '365 days', description: 'Criteo retargeting' },
+    'uid': { category: 'advertising', duration: '365 days', description: 'Criteo user ID' },
+    '__adroll': { category: 'advertising', duration: '365 days', description: 'AdRoll tracking' },
+    '__ar_v4': { category: 'advertising', duration: '365 days', description: 'AdRoll segmentation' },
+    'ad-id': { category: 'advertising', duration: '270 days', description: 'Amazon Ad System ID' },
+    'ad-privacy': { category: 'advertising', duration: '730 days', description: 'Amazon Ad Preferences' },
+    'yandexuid': { category: 'advertising', duration: '365 days', description: 'Yandex Metrica user ID' },
+    'ymex': { category: 'advertising', duration: '365 days', description: 'Yandex Metrica visitor' },
+    'm-b': { category: 'advertising', duration: '365 days', description: 'Quora browser ID' },
+    'm-uid': { category: 'advertising', duration: '365 days', description: 'Quora user ID' },
+    'sadb': { category: 'advertising', duration: '30 days', description: 'StackAdapt bidding data' },
+    'sadr': { category: 'advertising', duration: '30 days', description: 'StackAdapt retargeting' },
+    'TDID': { category: 'advertising', duration: '365 days', description: 'The Trade Desk ID' },
+    'TDCPM': { category: 'advertising', duration: '365 days', description: 'The Trade Desk CPM data' },
+    'mmapi': { category: 'advertising', duration: '30 days', description: 'MediaMath API tracking' },
+    'mmdata': { category: 'advertising', duration: '30 days', description: 'MediaMath campaign data' },
+    '_ga': { category: 'analytics', duration: '730 days', description: 'Google Analytics' },
+    '_gid': { category: 'analytics', duration: '1 day', description: 'Google Analytics' },
+    '_gat': { category: 'analytics', duration: '1 minute', description: 'Google Analytics throttle' },
+    'PHPSESSID': { category: 'functional', duration: 'Session', description: 'PHP session' },
+    'cookie_consent': { category: 'functional', duration: '365 days', description: 'Consent preferences' },
+
+    // New Facebook cookies from your list
+    'lu': { category: 'advertising', duration: '2 years', description: 'Used to record whether the person chose to remain logged in (User ID and miscellaneous log in information)' },
+    'xs': { category: 'advertising', duration: '90 days', description: 'Used with c_user cookie to authenticate identity to Facebook (Session ID, creation time, authentication value)' },
+    'c_user': { category: 'advertising', duration: '90 days', description: 'Used with xs cookie to authenticate identity to Facebook (User ID)' },
+    'm_user': { category: 'advertising', duration: '90 days', description: 'Used to authenticate identity on Facebook mobile website (Email, User ID, authentication value)' },
+    'pl': { category: 'advertising', duration: '90 days', description: 'Records that a device or browser logged in via Facebook platform' },
+    'dbln': { category: 'advertising', duration: '2 years', description: 'Used to enable device-based logins (Login authentication values)' },
+    'aks': { category: 'advertising', duration: '30 days', description: 'Determines login state of a person visiting accountkit.com (Account kit access token)' },
+    'aksb': { category: 'advertising', duration: '30 minutes', description: 'Authenticates logins using Account Kit (Request time value)' },
+    'sfau': { category: 'advertising', duration: '1 day', description: 'Optimizes recovery flow after failed login attempts (Encrypted user ID, contact point, time stamp)' },
+    'ick': { category: 'advertising', duration: '2 years', description: 'Stores an encryption key used to encrypt cookies' },
+    'csm': { category: 'advertising', duration: '90 days', description: 'Insecure indicator' },
+    's': { category: 'advertising', duration: '90 days', description: 'Facebook browser identification, authentication, marketing cookies' },
+    'sb': { category: 'advertising', duration: '2 years', description: 'Facebook browser identification, authentication, marketing cookies' },
+    '_fbc': { category: 'advertising', duration: '2 years', description: 'Used for Facebook advertising products like real time bidding' },
+    'oo': { category: 'advertising', duration: '5 years', description: 'Ad opt-out cookie' },
+    'ddid': { category: 'advertising', duration: '28 days', description: 'Used to open specific location in advertiser app upon installation' },
+    'locale': { category: 'advertising', duration: '7 days', description: 'Contains display locale of last logged in user' },
+    'js_ver': { category: 'advertising', duration: '7 days', description: 'Records age of Facebook javascript files' },
+    'rc': { category: 'advertising', duration: '7 days', description: 'Used to optimize site performance for advertisers' },
+    'campaign_click_url': { category: 'advertising', duration: '30 days', description: 'Records Facebook URL landed on after clicking an ad' },
+    'usida': { category: 'advertising', duration: 'Session', description: 'Collects browser and unique identifier for targeted advertising' },
     
-    // Microsoft UET Cookies
-    '_uetmsclkid': { category: 'advertising', duration: 'Session', description: 'Microsoft UET - Click ID' },
-    '_uetmsdns': { category: 'advertising', duration: 'Session', description: 'Microsoft UET - Domain Session' },
-    '_uetsid': { category: 'advertising', duration: '1 day', description: 'Microsoft UET - Session ID' },
-    '_uetvid': { category: 'advertising', duration: '390 days', description: 'Microsoft UET - Visitor ID' },
-    'MUID': { category: 'advertising', duration: '390 days', description: 'Microsoft UET - User ID' },
-    
-    // Other common cookies
-    'cookie_consent': { category: 'functional', duration: '365 days', description: 'Consent preferences' }
+    // Facebook functional cookies
+    'wd': { category: 'functional', duration: 'Session', description: 'Stores browser window dimensions for page rendering optimization' },
+    'presence': { category: 'functional', duration: 'Session', description: 'Contains user chat state' }
 };
 
 // Language translations (keeping only en and fr as requested)
@@ -419,7 +483,722 @@ const translations = {
         passwordIncorrect: "Mot de passe incorrect",
         dashboardTitle: "Tableau de bord des analyses de consentement",
         seeAnalytics: "Voir les analyses de consentement"
-    }
+    },
+     de: {
+        title: "Wir schätzen Ihre Privatsphäre",
+        description: "Wir verwenden Cookies, um Ihr Surferlebnis zu verbessern, personalisierte Anzeigen oder Inhalte bereitzustellen und unseren Datenverkehr zu analysieren. Wenn Sie auf \"Alle akzeptieren\" klicken, erklären Sie sich mit der Verwendung von Cookies einverstanden.",
+        privacy: "Datenschutzrichtlinie",
+        customize: "Anpassen",
+        reject: "Alle ablehnen",
+        accept: "Alle akzeptieren",
+        essential: "Essenzielle Cookies",
+        essentialDesc: "Für Website-Funktionalität",
+        analytics: "Analytics-Cookies",
+        analyticsDesc: "Verstehen Nutzerinteraktionen",
+        performance: "Performance-Cookies",
+        performanceDesc: "Verbessern die Leistung",
+        advertising: "Werbe-Cookies",
+        advertisingDesc: "Liefern relevante Anzeigen",
+        other: "Andere Cookies",
+        otherDesc: "Nicht kategorisierte Cookies",
+        save: "Einstellungen speichern",
+        language: "Deutsch",
+        statsTitle: "Zustimmungsstatistiken",
+        statsAccepted: "Akzeptiert",
+        statsRejected: "Abgelehnt",
+        statsCustom: "Angepasst",
+        statsTotal: "Gesamt",
+        statsPercentage: "Prozentsatz",
+        statsLast1Day: "Letzter Tag",
+        statsLast7Days: "Letzten 7 Tage",
+        statsLast30Days: "Letzten 30 Tage",
+        passwordPrompt: "Passwort eingeben, um Analysen zu sehen",
+        passwordSubmit: "Einreichen",
+        passwordIncorrect: "Falsches Passwort",
+        dashboardTitle: "Zustimmungsanalyse-Dashboard",
+        seeAnalytics: "Zustimmungsanalysen anzeigen"
+    },
+  it: {
+        title: "Rispettiamo la tua privacy",
+        description: "Utilizziamo i cookie per migliorare la tua esperienza, fornire annunci o contenuti personalizzati e analizzare il nostro traffico. Cliccando su \"Accetta tutto\", acconsenti all'uso dei cookie.",
+        privacy: "Privacy Policy",
+        customize: "Personalizza",
+        reject: "Rifiuta tutto",
+        accept: "Accetta tutto",
+        essential: "Cookie essenziali",
+        essentialDesc: "Necessari per il funzionamento",
+        analytics: "Cookie analitici",
+        analyticsDesc: "Analizzano le interazioni",
+        performance: "Cookie prestazioni",
+        performanceDesc: "Migliorano le prestazioni",
+        advertising: "Cookie pubblicitari",
+        advertisingDesc: "Mostrano annunci pertinenti",
+        other: "Altri cookie",
+        otherDesc: "Cookie non categorizzati",
+        save: "Salva preferenze",
+        language: "Italiano",
+        statsTitle: "Statistiche del Consenso",
+        statsAccepted: "Accettato",
+        statsRejected: "Rifiutato",
+        statsCustom: "Personalizzato",
+        statsTotal: "Totale",
+        statsPercentage: "Percentuale",
+        statsLast1Day: "Ultimo 1 Giorno",
+        statsLast7Days: "Ultimi 7 Giorni",
+        statsLast30Days: "Ultimi 30 Giorni",
+        passwordPrompt: "Inserisci la password per visualizzare le analitiche",
+        passwordSubmit: "Invia",
+        passwordIncorrect: "Password errata",
+        dashboardTitle: "Dashboard Analisi Consenso",
+        seeAnalytics: "Vedi Analisi Consenso"
+    },
+    es: {
+        title: "Valoramos su privacidad",
+        description: "Utilizamos cookies para mejorar su experiencia, proporcionar anuncios o contenido personalizado y analizar nuestro tráfico. Al hacer clic en \"Aceptar todo\", usted acepta el uso de cookies.",
+        privacy: "Política de privacidad",
+        customize: "Personalizar",
+        reject: "Rechazar todo",
+        accept: "Aceptar todo",
+        essential: "Cookies esenciales",
+        essentialDesc: "Necesarias para el funcionamiento",
+        analytics: "Cookies de análisis",
+        analyticsDesc: "Ayudan a entender interacciones",
+        performance: "Cookies de rendimiento",
+        performanceDesc: "Mejoran el rendimiento",
+        advertising: "Cookies publicitarias",
+        advertisingDesc: "Muestran anuncios relevantes",
+        other: "Otras cookies",
+        otherDesc: "Cookies no categorizadas",
+        save: "Guardar preferencias",
+        language: "Español",
+        statsTitle: "Estadísticas de Consentimiento",
+        statsAccepted: "Aceptado",
+        statsRejected: "Rechazado",
+        statsCustom: "Personalizado",
+        statsTotal: "Total",
+        statsPercentage: "Porcentaje",
+        statsLast1Day: "Último Día",
+        statsLast7Days: "Últimos 7 Días",
+        statsLast30Days: "Últimos 30 Días",
+        passwordPrompt: "Ingrese contraseña para ver análisis",
+        passwordSubmit: "Enviar",
+        passwordIncorrect: "Contraseña incorrecta",
+        dashboardTitle: "Panel de Análisis de Consentimiento",
+        seeAnalytics: "Ver Estadísticas de Consentimiento"
+    },
+    pt: {
+        title: "Valorizamos sua privacidade",
+        description: "Usamos cookies para melhorar sua experiência, fornecer anúncios ou conteúdo personalizado e analisar nosso tráfego. Clicando em \"Aceitar Tudo\", você concorda com o uso de cookies.",
+        privacy: "Política de Privacidade",
+        customize: "Personalizar",
+        reject: "Rejeitar Tudo",
+        accept: "Aceitar Tudo",
+        essential: "Cookies Essenciais",
+        essentialDesc: "Necessários para o funcionamento",
+        analytics: "Cookies de Análise",
+        analyticsDesc: "Ajudam a entender interações",
+        performance: "Cookies de Desempenho",
+        performanceDesc: "Melhoram o desempenho",
+        advertising: "Cookies de Publicidade",
+        advertisingDesc: "Exibem anúncios relevantes",
+        other: "Outros Cookies",
+        otherDesc: "Cookies não categorizados",
+        save: "Salvar Preferências",
+        language: "Português",
+        statsTitle: "Estatísticas de Consentimento",
+        statsAccepted: "Aceito",
+        statsRejected: "Rejeitado",
+        statsCustom: "Personalizado",
+        statsTotal: "Total",
+        statsPercentage: "Percentagem",
+        statsLast1Day: "Último Dia",
+        statsLast7Days: "Últimos 7 Dias",
+        statsLast30Days: "Últimos 30 Dias",
+        passwordPrompt: "Digite a senha para ver análises",
+        passwordSubmit: "Enviar",
+        passwordIncorrect: "Senha incorreta",
+        dashboardTitle: "Painel de Análise de Consentimento",
+        seeAnalytics: "Ver Estatísticas de Consentimento"
+    },
+    nl: {
+        title: "We waarderen uw privacy",
+        description: "We gebruiken cookies om uw browse-ervaring te verbeteren, gepersonaliseerde advertenties of inhoud te bieden en ons verkeer te analyseren. Door op \"Alles accepteren\" te klikken, stemt u in met het gebruik van cookies.",
+        privacy: "Privacybeleid",
+        customize: "Aanpassen",
+        reject: "Alles weigeren",
+        accept: "Alles accepteren",
+        essential: "Essentiële Cookies",
+        essentialDesc: "Noodzakelijk voor websitefunctionaliteit",
+        analytics: "Analysecookies",
+        analyticsDesc: "Helpen bezoekersinteracties te begrijpen",
+        performance: "Prestatiecookies",
+        performanceDesc: "Verbeteren website prestaties",
+        advertising: "Advertentiecookies",
+        advertisingDesc: "Leveren relevante advertenties",
+        other: "Andere Cookies",
+        otherDesc: "Niet-gecategoriseerde cookies",
+        save: "Voorkeuren opslaan",
+        language: "Nederlands",
+        statsTitle: "Toestemmingsstatistieken",
+        statsAccepted: "Geaccepteerd",
+        statsRejected: "Geweigerd",
+        statsCustom: "Aangepast",
+        statsTotal: "Totaal",
+        statsPercentage: "Percentage",
+        statsLast1Day: "Laatste Dag",
+        statsLast7Days: "Laatste 7 Dagen",
+        statsLast30Days: "Laatste 30 Dagen",
+        passwordPrompt: "Voer wachtwoord in om analyses te zien",
+        passwordSubmit: "Indienen",
+        passwordIncorrect: "Onjuist wachtwoord",
+        dashboardTitle: "Dashboard Toestemmingsanalyses",
+        seeAnalytics: "Toestemmingsstatistieken bekijken"
+    },
+    pl: {
+        title: "Szanujemy Twoją prywatność",
+        description: "Używamy plików cookie, aby poprawić Twoje doświadczenia przeglądania, dostarczać spersonalizowane reklamy lub treści i analizować nasz ruch. Klikając „Zaakceptuj wszystkie\", wyrażasz zgodę na używanie plików cookie.",
+        privacy: "Polityka prywatności",
+        customize: "Dostosuj",
+        reject: "Odrzuć wszystkie",
+        accept: "Zaakceptuj wszystkie",
+        essential: "Niezbędne pliki cookie",
+        essentialDesc: "Wymagane do działania witryny",
+        analytics: "Analityczne pliki cookie",
+        analyticsDesc: "Pomagają zrozumieć interakcje",
+        performance: "Pliki cookie wydajności",
+        performanceDesc: "Poprawiają wydajność witryny",
+        advertising: "Reklamowe pliki cookie",
+        advertisingDesc: "Dostarczają odpowiednie reklamy",
+        other: "Inne pliki cookie",
+        otherDesc: "Nieskategoryzowane pliki cookie",
+        save: "Zapisz preferencje",
+        language: "Polski",
+        statsTitle: "Statystyki zgód",
+        statsAccepted: "Zaakceptowane",
+        statsRejected: "Odrzucone",
+        statsCustom: "Dostosowane",
+        statsTotal: "Łącznie",
+        statsPercentage: "Procent",
+        statsLast1Day: "Ostatni Dzień",
+        statsLast7Days: "Ostatnie 7 Dni",
+        statsLast30Days: "Ostatnie 30 Dni",
+        passwordPrompt: "Wpisz hasło, aby zobaczyć analizy",
+        passwordSubmit: "Zatwierdź",
+        passwordIncorrect: "Nieprawidłowe hasło",
+        dashboardTitle: "Panel statystyk zgód",
+        seeAnalytics: "Zobacz statystyki zgód"
+    },
+    sv: {
+        title: "Vi värdesätter din integritet",
+        description: "Vi använder cookies för att förbättra din surfupplevelse, tillhandahålla anpassade annonser eller innehåll och analysera vår trafik. Genom att klicka på \"Acceptera alla\" samtycker du till användningen av cookies.",
+        privacy: "Integritetspolicy",
+        customize: "Anpassa",
+        reject: "Avvisa alla",
+        accept: "Acceptera alla",
+        essential: "Nödvändiga Cookies",
+        essentialDesc: "Nödvändiga för webbplatsens funktionalitet",
+        analytics: "Analyscookies",
+        analyticsDesc: "Hjälper till att förstå besökarinteraktioner",
+        performance: "Prestandacookies",
+        performanceDesc: "Förbättrar webbplatsens prestanda",
+        advertising: "Annonscookies",
+        advertisingDesc: "Levererar relevanta annonser",
+        other: "Andra Cookies",
+        otherDesc: "Okategoriserade cookies",
+        save: "Spara inställningar",
+        language: "Svenska",
+        statsTitle: "Samtyckesstatistik",
+        statsAccepted: "Accepterade",
+        statsRejected: "Avvisade",
+        statsCustom: "Anpassade",
+        statsTotal: "Totalt",
+        statsPercentage: "Procent",
+        statsLast1Day: "Senaste Dagen",
+        statsLast7Days: "Senaste 7 Dagarna",
+        statsLast30Days: "Senaste 30 Dagarna",
+        passwordPrompt: "Ange lösenord för att se analyser",
+        passwordSubmit: "Skicka",
+        passwordIncorrect: "Felaktigt lösenord",
+        dashboardTitle: "Samtyckesanalyspanel",
+        seeAnalytics: "Se samtyckesstatistik"
+    },
+    da: {
+        title: "Vi værdsætter dit privatliv",
+        description: "Vi bruger cookies til at forbedre din browsingoplevelse, levere personificerede annoncer eller indhold og analysere vores trafik. Ved at klikke på \"Accepter alle\" giver du samtykke til brugen af cookies.",
+        privacy: "Privatlivspolitik",
+        customize: "Tilpas",
+        reject: "Afvis alle",
+        accept: "Accepter alle",
+        essential: "Nødvendige Cookies",
+        essentialDesc: "Nødvendige for webstedets funktionalitet",
+        analytics: "Analysecookies",
+        analyticsDesc: "Hjælper med at forstå brugerinteraktioner",
+        performance: "Performancecookies",
+        performanceDesc: "Forbedrer webstedets ydeevne",
+        advertising: "Annoncecookies",
+        advertisingDesc: "Leverer relevante annoncer",
+        other: "Andre Cookies",
+        otherDesc: "Ukategoriserede cookies",
+        save: "Gem indstillinger",
+        language: "Dansk",
+        statsTitle: "Samtykkestatistik",
+        statsAccepted: "Accepteret",
+        statsRejected: "Afvist",
+        statsCustom: "Tilpasset",
+        statsTotal: "Total",
+        statsPercentage: "Procentdel",
+        statsLast1Day: "Sidste Dag",
+        statsLast7Days: "Sidste 7 Dage",
+        statsLast30Days: "Sidste 30 Dage",
+        passwordPrompt: "Indtast adgangskode for at se analyser",
+        passwordSubmit: "Indsend",
+        passwordIncorrect: "Forkert adgangskode",
+        dashboardTitle: "Samtykkeanalysepanel",
+        seeAnalytics: "Se samtykkestatistik"
+    },
+    fi: {
+        title: "Arvostamme yksityisyyttäsi",
+        description: "Käytämme evästeitä parantaaksemme selauskokemustasi, tarjotaksemme henkilökohtaisia mainoksia tai sisältöä ja analysoidaksemme liikennettämme. Klikkaamalla \"Hyväksy kaikki\" annat suostumuksesi evästeiden käyttöön.",
+        privacy: "Tietosuojakäytäntö",
+        customize: "Mukauta",
+        reject: "Hylkää kaikki",
+        accept: "Hyväksy kaikki",
+        essential: "Välttämättömät evästeet",
+        essentialDesc: "Välttämättömiä sivuston toiminnan kannalta",
+        analytics: "Analytiikkaevästeet",
+        analyticsDesc: "Auttavat ymmärtämään käyttäjäinteraktioita",
+        performance: "Suorituskykyevästeet",
+        performanceDesc: "Parantavat sivuston suorituskykyä",
+        advertising: "Mainosevästeet",
+        advertisingDesc: "Toimittavat asiaankuuluvia mainoksia",
+        other: "Muut evästeet",
+        otherDesc: "Luokittelemattomat evästeet",
+        save: "Tallenna asetukset",
+        language: "Suomi",
+        statsTitle: "Suostumustilastot",
+        statsAccepted: "Hyväksytty",
+        statsRejected: "Hylätty",
+        statsCustom: "Mukautettu",
+        statsTotal: "Yhteensä",
+        statsPercentage: "Prosenttia",
+        statsLast1Day: "Viimeinen Päivä",
+        statsLast7Days: "Viimeiset 7 Päivää",
+        statsLast30Days: "Viimeiset 30 Päivää",
+        passwordPrompt: "Anna salasana nähdäksesi analyysit",
+        passwordSubmit: "Lähetä",
+        passwordIncorrect: "Väärä salasana",
+        dashboardTitle: "Suostumusanalyysien kojelauta",
+        seeAnalytics: "Näytä suostumustilastot"
+    },
+    el: {
+        title: "Σεβόμαστε την ιδιωτικότητά σας",
+        description: "Χρησιμοποιούμε cookies για να βελτιώσουμε την εμπειρία σας, να παρέχουμε εξατομικευμένες διαφημίσεις ή περιεχόμενο και να αναλύουμε την επισκεψιμότητά μας. Κάνοντας κλικ στο \"Αποδοχή όλων\", συναινείτε στη χρήση cookies.",
+        privacy: "Πολιτική Απορρήτου",
+        customize: "Προσαρμογή",
+        reject: "Απόρριψη όλων",
+        accept: "Αποδοχή όλων",
+        essential: "Απαραίτητα Cookies",
+        essentialDesc: "Απαραίτητα για τη λειτουργία του ιστότοπου",
+        analytics: "Αναλυτικά Cookies",
+        analyticsDesc: "Βοηθούν στην κατανόηση αλληλεπιδράσεων",
+        performance: "Cookies Απόδοσης",
+        performanceDesc: "Βελτιώνουν την απόδοση του ιστότοπου",
+        advertising: "Διαφημιστικά Cookies",
+        advertisingDesc: "Παρέχουν σχετικές διαφημίσεις",
+        other: "Άλλα Cookies",
+        otherDesc: "Μη κατηγοριοποιημένα cookies",
+        save: "Αποθήκευση προτιμήσεων",
+        language: "Ελληνικά",
+        statsTitle: "Στατιστικά Συναίνεσης",
+        statsAccepted: "Αποδεκτά",
+        statsRejected: "Απορριφθέντα",
+        statsCustom: "Προσαρμοσμένα",
+        statsTotal: "Σύνολο",
+        statsPercentage: "Ποσοστό",
+        statsLast1Day: "Τελευταία Μέρα",
+        statsLast7Days: "Τελευταίες 7 Ημέρες",
+        statsLast30Days: "Τελευταίες 30 Ημέρες",
+        passwordPrompt: "Εισάγετε κωδικό για να δείτε αναλύσεις",
+        passwordSubmit: "Υποβολή",
+        passwordIncorrect: "Λάθος κωδικός",
+        dashboardTitle: "Πίνακας Ανάλυσης Συναινέσεων",
+        seeAnalytics: "Δείτε στατιστικά συναίνεσης"
+    },
+    hu: {
+        title: "Tiszteljük az Ön privát szféráját",
+        description: "Cookie-kat használunk a böngészési élmény javításához, személyre szabott hirdetések vagy tartalom nyújtásához és a forgalmunk elemzéséhez. Az \"Összes elfogadása\" gombra kattintva hozzájárul a cookie-k használatához.",
+        privacy: "Adatvédelmi irányelv",
+        customize: "Testreszabás",
+        reject: "Összes elutasítása",
+        accept: "Összes elfogadása",
+        essential: "Alapvető Cookie-k",
+        essentialDesc: "A weboldal működéséhez szükséges",
+        analytics: "Elemző Cookie-k",
+        analyticsDesc: "Segítenek megérteni a látogatói interakciókat",
+        performance: "Teljesítmény Cookie-k",
+        performanceDesc: "Javítják a weboldal teljesítményét",
+        advertising: "Hirdetési Cookie-k",
+        advertisingDesc: "Releváns hirdetéseket jelenítenek meg",
+        other: "Egyéb Cookie-k",
+        otherDesc: "Nincs kategorizálva",
+        save: "Beállítások mentése",
+        language: "Magyar",
+        statsTitle: "Hozzájárulási statisztikák",
+        statsAccepted: "Elfogadva",
+        statsRejected: "Elutasítva",
+        statsCustom: "Testreszabva",
+        statsTotal: "Összesen",
+        statsPercentage: "Százalék",
+        statsLast1Day: "Elmúlt Nap",
+        statsLast7Days: "Elmúlt 7 Nap",
+        statsLast30Days: "Elmúlt 30 Nap",
+        passwordPrompt: "Adja meg a jelszót az elemzések megtekintéséhez",
+        passwordSubmit: "Beküldés",
+        passwordIncorrect: "Hibás jelszó",
+        dashboardTitle: "Hozzájárulási Elemző Irányítópult",
+        seeAnalytics: "Hozzájárulási statisztikák megtekintése"
+    },
+    cs: {
+        title: "Vaše soukromí je pro nás důležité",
+        description: "Používáme cookies ke zlepšení vašeho zážitku z prohlížení, poskytování personalizovaných reklam nebo obsahu a analýze našeho provozu. Kliknutím na \"Přijmout vše\" souhlasíte s používáním cookies.",
+        privacy: "Zásady ochrany osobních údajů",
+        customize: "Přizpůsobit",
+        reject: "Odmítnout vše",
+        accept: "Přijmout vše",
+        essential: "Nezbytné Cookies",
+        essentialDesc: "Nezbytné pro funkčnost webu",
+        analytics: "Analytické Cookies",
+        analyticsDesc: "Pomáhají porozumět interakcím návštěvníků",
+        performance: "Výkonnostní Cookies",
+        performanceDesc: "Zlepšují výkon webu",
+        advertising: "Reklamní Cookies",
+        advertisingDesc: "Poskytují relevantní reklamy",
+        other: "Ostatní Cookies",
+        otherDesc: "Nekategorizované cookies",
+        save: "Uložit nastavení",
+        language: "Čeština",
+        statsTitle: "Statistiky souhlasu",
+        statsAccepted: "Přijato",
+        statsRejected: "Odmítnuto",
+        statsCustom: "Přizpůsobeno",
+        statsTotal: "Celkem",
+        statsPercentage: "Procento",
+        statsLast1Day: "Poslední Den",
+        statsLast7Days: "Posledních 7 Dní",
+        statsLast30Days: "Posledních 30 Dní",
+        passwordPrompt: "Zadejte heslo pro zobrazení analýz",
+        passwordSubmit: "Odeslat",
+        passwordIncorrect: "Nesprávné heslo",
+        dashboardTitle: "Analytický Panel Souhlasu",
+        seeAnalytics: "Zobrazit statistiky souhlasu"
+    },
+    ro: {
+        title: "Respectăm confidențialitatea dumneavoastră",
+        description: "Folosim cookie-uri pentru a îmbunătăți experiența de navigare, pentru a furniza reclame sau conținut personalizat și pentru a analiza traficul nostru. Făcând clic pe \"Acceptă tot\", sunteți de acord cu utilizarea cookie-urilor.",
+        privacy: "Politica de confidențialitate",
+        customize: "Personalizează",
+        reject: "Respinge tot",
+        accept: "Acceptă tot",
+        essential: "Cookie-uri esențiale",
+        essentialDesc: "Necesare pentru funcționalitatea site-ului",
+        analytics: "Cookie-uri analitice",
+        analyticsDesc: "Ajută la înțelegerea interacțiunilor vizitatorilor",
+        performance: "Cookie-uri de performanță",
+        performanceDesc: "Îmbunătățesc performanța site-ului",
+        advertising: "Cookie-uri publicitare",
+        advertisingDesc: "Furnizează reclame relevante",
+        other: "Alte Cookie-uri",
+        otherDesc: "Cookie-uri necategorizate",
+        save: "Salvează preferințele",
+        language: "Română",
+        statsTitle: "Statistici consimțământ",
+        statsAccepted: "Acceptat",
+        statsRejected: "Respins",
+        statsCustom: "Personalizat",
+        statsTotal: "Total",
+        statsPercentage: "Procent",
+        statsLast1Day: "Ultima Zi",
+        statsLast7Days: "Ultimele 7 Zile",
+        statsLast30Days: "Ultimele 30 Zile",
+        passwordPrompt: "Introduceți parola pentru a vedea analizele",
+        passwordSubmit: "Trimite",
+        passwordIncorrect: "Parolă incorectă",
+        dashboardTitle: "Tablou de Bord Analize Consimțământ",
+        seeAnalytics: "Vezi statistici consimțământ"
+    },
+    sk: {
+        title: "Rešpektujeme vaše súkromie",
+        description: "Používame cookies na zlepšenie vášho zážitku z prehliadania, poskytovanie personalizovaných reklám alebo obsahu a analýzu nášho prevádzky. Kliknutím na \"Prijať všetko\" súhlasíte s používaním súborov cookie.",
+        privacy: "Zásady ochrany osobných údajov",
+        customize: "Prispôsobiť",
+        reject: "Odmietnuť všetko",
+        accept: "Prijať všetko",
+        essential: "Nevyhnutné Cookies",
+        essentialDesc: "Nevyhnutné pre funkčnosť webu",
+        analytics: "Analytické Cookies",
+        analyticsDesc: "Pomáhajú pochopiť interakcie návštevníkov",
+        performance: "Výkonnostné Cookies",
+        performanceDesc: "Zlepšujú výkon webu",
+        advertising: "Reklamné Cookies",
+        advertisingDesc: "Poskytujú relevantné reklamy",
+        other: "Ostatné Cookies",
+        otherDesc: "Nekategorizované cookies",
+        save: "Uložiť nastavenia",
+        language: "Slovenčina",
+        statsTitle: "Štatistiky súhlasu",
+        statsAccepted: "Prijaté",
+        statsRejected: "Odmietnuté",
+        statsCustom: "Prispôsobené",
+        statsTotal: "Celkom",
+        statsPercentage: "Percento",
+        statsLast1Day: "Posledný Deň",
+        statsLast7Days: "Posledných 7 Dní",
+        statsLast30Days: "Posledných 30 Dní",
+        passwordPrompt: "Zadajte heslo pre zobrazenie analýz",
+        passwordSubmit: "Odoslať",
+        passwordIncorrect: "Nesprávne heslo",
+        dashboardTitle: "Analytický Panel Súhlasu",
+        seeAnalytics: "Zobraziť štatistiky súhlasu"
+    },
+    sl: {
+        title: "Spoštujemo vašo zasebnost",
+        description: "Uporabljamo piškotke za izboljšanje vaše izkušnje brskanja, zagotavljanje prilagojenih oglasov ali vsebin in analizo našega prometa. S klikom na \"Sprejmi vse\" se strinjate z uporabo piškotkov.",
+        privacy: "Politika zasebnosti",
+        customize: "Prilagodi",
+        reject: "Zavrni vse",
+        accept: "Sprejmi vse",
+        essential: "Bistveni piškotki",
+        essentialDesc: "Nujni za delovanje spletnega mesta",
+        analytics: "Analitični piškotki",
+        analyticsDesc: "Pomagajo razumeti interakcije obiskovalcev",
+        performance: "Piškotki za zmogljivost",
+        performanceDesc: "Izboljšajo zmogljivost spletnega mesta",
+        advertising: "Oglasni piškotki",
+        advertisingDesc: "Zagotavljajo ustrezne oglase",
+        other: "Drugi piškotki",
+        otherDesc: "Nekategorizirani piškotki",
+        save: "Shrani nastavitve",
+        language: "Slovenščina",
+        statsTitle: "Statistika privolitve",
+        statsAccepted: "Sprejeto",
+        statsRejected: "Zavrnjeno",
+        statsCustom: "Prilagojeno",
+        statsTotal: "Skupaj",
+        statsPercentage: "Odstotek",
+        statsLast1Day: "Zadnji Dan",
+        statsLast7Days: "Zadnjih 7 Dni",
+        statsLast30Days: "Zadnjih 30 Dni",
+        passwordPrompt: "Vnesite geslo za ogled analiz",
+        passwordSubmit: "Pošlji",
+        passwordIncorrect: "Napačno geslo",
+        dashboardTitle: "Nadzorna plošča analize privolitve",
+        seeAnalytics: "Ogled statistike privolitve"
+    },
+    bg: {
+        title: "Уважаваме вашата поверителност",
+        description: "Използваме бисквитки, за да подобрим вашето сърфиране, да предоставяме персонализирани реклами или съдържание и да анализираме нашия трафик. С натискане на \"Приеми всички\" вие се съгласявате с използването на бисквитки.",
+        privacy: "Политика за поверителност",
+        customize: "Персонализиране",
+        reject: "Отхвърли всички",
+        accept: "Приеми всички",
+        essential: "Основни бисквитки",
+        essentialDesc: "Необходими за функционалността на сайта",
+        analytics: "Аналитични бисквитки",
+        analyticsDesc: "Помагат за разбиране на взаимодействията",
+        performance: "Бисквитки за производителност",
+        performanceDesc: "Подобряват производителността на сайта",
+        advertising: "Рекламни бисквитки",
+        advertisingDesc: "Доставят релевантни реклами",
+        other: "Други бисквитки",
+        otherDesc: "Некласифицирани бисквитки",
+        save: "Запази настройките",
+        language: "Български",
+        statsTitle: "Статистика за съгласие",
+        statsAccepted: "Прието",
+        statsRejected: "Отхвърлено",
+        statsCustom: "Персонализирано",
+        statsTotal: "Общо",
+        statsPercentage: "Процент",
+        statsLast1Day: "Последният Ден",
+        statsLast7Days: "Последните 7 Дни",
+        statsLast30Days: "Последните 30 Дни",
+        passwordPrompt: "Въведете парола за преглед на анализи",
+        passwordSubmit: "Изпращане",
+        passwordIncorrect: "Грешна парола",
+        dashboardTitle: "Табло за анализ на съгласие",
+        seeAnalytics: "Вижте статистика за съгласие"
+    },
+    hr: {
+        title: "Poštujemo vašu privatnost",
+        description: "Koristimo kolačiće za poboljšanje vašeg iskustva pregledavanja, pružanje personaliziranih oglasa ili sadržaja i analizu našeg prometa. Klikom na \"Prihvati sve\" pristajete na korištenje kolačića.",
+        privacy: "Politika privatnosti",
+        customize: "Prilagodi",
+        reject: "Odbaci sve",
+        accept: "Prihvati sve",
+        essential: "Osnovni kolačići",
+        essentialDesc: "Potrebni za funkcionalnost web stranice",
+        analytics: "Analitički kolačići",
+        analyticsDesc: "Pomažu razumjeti interakcije posjetitelja",
+        performance: "Kolačići performansi",
+        performanceDesc: "Poboljšavaju performanse web stranice",
+        advertising: "Oglasni kolačići",
+        advertisingDesc: "Pružaju relevantne oglase",
+        other: "Ostali kolačići",
+        otherDesc: "Nekategorizirani kolačići",
+        save: "Spremi postavke",
+        language: "Hrvatski",
+        statsTitle: "Statistika pristanka",
+        statsAccepted: "Prihvaćeno",
+        statsRejected: "Odbijeno",
+        statsCustom: "Prilagođeno",
+        statsTotal: "Ukupno",
+        statsPercentage: "Postotak",
+        statsLast1Day: "Zadnji Dan",
+        statsLast7Days: "Zadnjih 7 Dana",
+        statsLast30Days: "Zadnjih 30 Dana",
+        passwordPrompt: "Unesite lozinku za pregled analize",
+        passwordSubmit: "Pošalji",
+        passwordIncorrect: "Pogrešna lozinka",
+        dashboardTitle: "Nadzorna ploča analize pristanka",
+        seeAnalytics: "Pogledajte statistiku pristanka"
+    },
+    lt: {
+        title: "Mes gerbiame jūsų privatumą",
+        description: "Mes naudojame slapukus, kad pagerintume jūsų naršymo patirtį, teiktume suasmenintas reklamas ar turinį ir analizuotume savo srautą. Spustelėję \"Priimti viską\" sutinkate su slapukų naudojimu.",
+        privacy: "Privatumo politika",
+        customize: "Pritaikyti",
+        reject: "Atmesti viską",
+        accept: "Priimti viską",
+        essential: "Būtini slapukai",
+        essentialDesc: "Būtini svetainės funkcionalumui",
+        analytics: "Analitiniai slapukai",
+        analyticsDesc: "Padeda suprasti lankytojų sąveiką",
+        performance: "Veiklos slapukai",
+        performanceDesc: "Pagerina svetainės veikimą",
+        advertising: "Reklaminiai slapukai",
+        advertisingDesc: "Teikia aktualias reklamas",
+        other: "Kiti slapukai",
+        otherDesc: "Nekategorizuoti slapukai",
+        save: "Išsaugoti nuostatas",
+        language: "Lietuvių",
+        statsTitle: "Sutikimo statistika",
+        statsAccepted: "Priimta",
+        statsRejected: "Atmesta",
+        statsCustom: "Pritaikyta",
+        statsTotal: "Iš viso",
+        statsPercentage: "Procentas",
+        statsLast1Day: "Paskutinė Diena",
+        statsLast7Days: "Paskutinės 7 Dienos",
+        statsLast30Days: "Paskutinės 30 Dienų",
+        passwordPrompt: "Įveskite slaptažodį analizei peržiūrėti",
+        passwordSubmit: "Pateikti",
+        passwordIncorrect: "Neteisingas slaptažodis",
+        dashboardTitle: "Sutikimo analizės prietaisų skydelis",
+        seeAnalytics: "Peržiūrėti sutikimo statistiką"
+    },
+    lv: {
+        title: "Mēs cienām jūsu privātumu",
+        description: "Mēs izmantojam sīkfailus, lai uzlabotu jūsu pārlūkošanas pieredzi, nodrošinātu personalizētus reklāmas vai saturu un analizētu mūsu satiksmi. Noklikšķinot uz \"Piekrist visiem\", jūs piekrītat sīkfailu izmantošanai.",
+        privacy: "Privātuma politika",
+        customize: "Pielāgot",
+        reject: "Noraidīt visus",
+        accept: "Piekrist visiem",
+        essential: "Būtiskie sīkfaili",
+        essentialDesc: "Nepieciešami vietnes funkcionalitātei",
+        analytics: "Analītiskie sīkfaili",
+        analyticsDesc: "Palīdz izprast apmeklētāju mijiedarbību",
+        performance: "Veiktspējas sīkfaili",
+        performanceDesc: "Uzlabo vietnes veiktspēju",
+        advertising: "Reklāmas sīkfaili",
+        advertisingDesc: "Nodrošina atbilstošas reklāmas",
+        other: "Citi sīkfaili",
+        otherDesc: "Nekategorizēti sīkfaili",
+        save: "Saglabāt iestatījumus",
+        language: "Latviešu",
+        statsTitle: "Piekrišanas statistika",
+        statsAccepted: "Piekrituši",
+        statsRejected: "Noraidīti",
+        statsCustom: "Pielāgoti",
+        statsTotal: "Kopā",
+        statsPercentage: "Procenti",
+        statsLast1Day: "Pēdējā Diena",
+        statsLast7Days: "Pēdējās 7 Dienas",
+        statsLast30Days: "Pēdējās 30 Dienas",
+        passwordPrompt: "Ievadiet paroli, lai skatītu analīzi",
+        passwordSubmit: "Iesniegt",
+        passwordIncorrect: "Nepareiza parole",
+        dashboardTitle: "Piekrišanas analīzes panelis",
+        seeAnalytics: "Skatīt piekrišanas statistiku"
+    },
+    et: {
+        title: "Me austame teie privaatsust",
+        description: "Kasutame küpsiseid, et parandada teie veebilehitsemise kogemust, pakkuda personaalseid reklaame või sisu ning analüüsida oma liiklust. Klõpsates nupul \"Nõustu kõigega\", nõustute küpsiste kasutamisega.",
+        privacy: "Privaatsuspoliitika",
+        customize: "Kohanda",
+        reject: "Keeldu kõigest",
+        accept: "Nõustu kõigega",
+        essential: "Olulised küpsised",
+        essentialDesc: "Vajalikud veebisaidi toimimiseks",
+        analytics: "Analüütilised küpsised",
+        analyticsDesc: "Aitavad mõista külastajate suhtlemist",
+        performance: "Töökindluse küpsised",
+        performanceDesc: "Parandavad veebisaidi jõudlust",
+        advertising: "Reklaamiküpsised",
+        advertisingDesc: "Pakuvad asjakohaseid reklaame",
+        other: "Muud küpsised",
+        otherDesc: "Liigitamata küpsised",
+        save: "Salvesta eelistused",
+        language: "Eesti",
+        statsTitle: "Nõusoleku statistika",
+        statsAccepted: "Nõustutud",
+        statsRejected: "Keeldutud",
+        statsCustom: "Kohandatud",
+        statsTotal: "Kokku",
+        statsPercentage: "Protsent",
+        statsLast1Day: "Viimane Päev",
+        statsLast7Days: "Viimased 7 Päeva",
+        statsLast30Days: "Viimased 30 Päeva",
+        passwordPrompt: "Sisesta parool analüüside vaatamiseks",
+        passwordSubmit: "Esita",
+        passwordIncorrect: "Vale parool",
+        dashboardTitle: "Nõusoleku analüüside töölaud",
+        seeAnalytics: "Vaata nõusoleku statistikat"
+    },
+    mt: {
+        title: "Nirrispettaw il-privatezza tiegħek",
+        description: "Nużaw cookies biex ittejjeb l-esperjenza tiegħek ta 'navigazzjoni, nipprovdu reklami jew kontent personalizzat u nanalizzaw it-traffiku tagħna. Billi tikklikkja \"Aċċetta Kollox\", qed tagħti l-kunsens għall-użu ta 'cookies.",
+        privacy: "Politika tal-Privatezza",
+        customize: "Ippersonalizza",
+        reject: "Irrifjuta Kollox",
+        accept: "Aċċetta Kollox",
+        essential: "Cookies Essenzjali",
+        essentialDesc: "Meħtieġa għall-funzjonalità tas-sit",
+        analytics: "Cookies Analitiċi",
+        analyticsDesc: "Jgħin fuq interazzjonijiet tal-viżitatur",
+        performance: "Cookies ta 'Prestazzjoni",
+        performanceDesc: "Ittejjeb il-prestazzjoni tas-sit",
+        advertising: "Cookies tar-Reklamar",
+        advertisingDesc: "Ipprovdi reklami rilevanti",
+        other: "Cookies Oħra",
+        otherDesc: "Cookies mhux kategorizzati",
+        save: "Issejvja l-Preferenzi",
+        language: "Malti",
+        statsTitle: "Statistika tal-Kunsens",
+        statsAccepted: "Aċċettat",
+        statsRejected: "Rrifjutat",
+        statsCustom: "Ippersonalizzat",
+        statsTotal: "Total",
+        statsPercentage: "Perċentwal",
+        statsLast1Day: "L-Aħħar Jum",
+        statsLast7Days: "L-Aħħar 7 Ġranet",
+        statsLast30Days: "L-Aħħar 30 Ġranet",
+        passwordPrompt: "Idħol il-password biex tara l-analiżi",
+        passwordSubmit: "Ibgħat",
+        passwordIncorrect: "Password mhux korretta",
+        dashboardTitle: "Dashboard tal-Analiżi tal-Kunsens",
+        seeAnalytics: "Ara l-Istatistika tal-Kunsens"
+    },
+ // ... (keep all other language translations the same)
 };
 
 // Country to language mapping for auto-translation (keeping all mappings)
@@ -578,43 +1357,6 @@ async function fetchLocationData() {
         });
     }
 }
-
-
-
-function getLocationDataFromDataLayer() {
-    const latestEvent = window.dataLayer.find(event => event.event === 'locationRetrieved');
-    return latestEvent ? {
-        continent: latestEvent.continent || 'Unknown',
-        country: latestEvent.country || 'Unknown',
-        city: latestEvent.city || 'Unknown',
-        zip: latestEvent.zip || 'Unknown',
-        ip: latestEvent.ip || 'Unknown',
-        street: latestEvent.street || 'Unknown',
-        region: latestEvent.region || 'Unknown',
-        timezone: latestEvent.timezone || 'Unknown',
-        isp: latestEvent.isp || 'Unknown',
-        language: latestEvent.language || 'Unknown'
-    } : {
-        continent: 'Unknown',
-        country: 'Unknown',
-        city: 'Unknown',
-        zip: 'Unknown',
-        ip: 'Unknown',
-        street: 'Unknown',
-        region: 'Unknown',
-        timezone: 'Unknown',
-        isp: 'Unknown',
-        language: 'Unknown'
-    };
-}
-
-
-
-
-
-
-
-
 
 // Function to map countries to their respective continents
 function getContinentFromCountry(countryCode) {
@@ -2598,7 +3340,7 @@ function acceptAllCookies() {
         updateConsentStats('accepted');
     }
     
-    // Use existing locationData
+    // Push dataLayer event for consent acceptance with location data
     window.dataLayer.push({
         'event': 'cookie_consent_accepted',
         'consent_mode': {
@@ -2778,20 +3520,34 @@ function updateConsentMode(consentData) {
         'security_storage': 'granted'
     };
 
-    let gcsSignal = 'G100';
+    // Determine GCS signal based on consent status and categories
+    let gcsSignal = 'G100'; // Default to all denied
+    
     if (consentData.status === 'accepted') {
-        gcsSignal = 'G111';
+        gcsSignal = 'G111'; // All granted
     } else if (consentData.status === 'custom') {
-        if (consentData.categories.analytics && !consentData.categories.advertising) gcsSignal = 'G101';
-        else if (consentData.categories.advertising && !consentData.categories.analytics) gcsSignal = 'G110';
-        else if (consentData.categories.analytics && consentData.categories.advertising) gcsSignal = 'G111';
+        if (consentData.categories.analytics && !consentData.categories.advertising) {
+            gcsSignal = 'G101'; // Analytics granted, ads denied
+        } else if (consentData.categories.advertising && !consentData.categories.analytics) {
+            gcsSignal = 'G110'; // Ads granted, analytics denied
+        } else if (consentData.categories.analytics && consentData.categories.advertising) {
+            gcsSignal = 'G111'; // Both granted (same as accept all)
+        } else {
+            gcsSignal = ''; // Both denied (same as reject all)
+        }
     }
 
+    // Update Google consent
     gtag('consent', 'update', consentStates);
     
+    // Update Microsoft UET consent if enabled
     if (config.uetConfig.enabled) {
         const uetConsentState = consentData.categories.advertising ? 'granted' : 'denied';
-        window.uetq.push('consent', 'update', { 'ad_storage': uetConsentState });
+        window.uetq.push('consent', 'update', {
+            'ad_storage': uetConsentState
+        });
+        
+        // Push UET consent event to dataLayer with the exact requested format
         window.dataLayer.push({
             'event': 'uet_consent_update',
             'uet_consent': {
@@ -2804,7 +3560,8 @@ function updateConsentMode(consentData) {
             'location_data': locationData
         });
     }
-
+    
+    // Push general consent update to dataLayer
     window.dataLayer.push({
         'event': 'cookie_consent_update',
         'consent_mode': consentStates,
@@ -2878,9 +3635,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Fetch location data asynchronously
     await fetchLocationData();
 
-    // Update locationData with the latest from dataLayer
-    locationData = getLocationDataFromDataLayer();
-
     // Scan and categorize existing cookies
     const detectedCookies = scanAndCategorizeCookies();
 
@@ -2893,7 +3647,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize cookie consent
     initializeCookieConsent(detectedCookies, userLanguage);
 
-
+    // Handle scroll acceptance if enabled
+    if (config.behavior.acceptOnScroll) {
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            if (!getCookie('cookie_consent') && bannerShown) {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function() {
+                    const scrollPercentage = (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100;
+                    if (scrollPercentage > 30) {
+                        acceptAllCookies();
+                        hideCookieBanner();
+                        if (config.behavior.showFloatingButton) {
+                            showFloatingButton();
+                        }
+                    }
+                }, 200);
+            }
+        });
+    }
 
     // Handle continue button acceptance if enabled
     if (config.behavior.acceptOnContinue) {
@@ -2910,8 +3682,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 });
-
-   
 
 // Export functions for global access if needed
 if (typeof window !== 'undefined') {
