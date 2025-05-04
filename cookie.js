@@ -579,6 +579,43 @@ async function fetchLocationData() {
     }
 }
 
+
+
+function getLocationDataFromDataLayer() {
+    const latestEvent = window.dataLayer.find(event => event.event === 'locationRetrieved');
+    return latestEvent ? {
+        continent: latestEvent.continent || 'Unknown',
+        country: latestEvent.country || 'Unknown',
+        city: latestEvent.city || 'Unknown',
+        zip: latestEvent.zip || 'Unknown',
+        ip: latestEvent.ip || 'Unknown',
+        street: latestEvent.street || 'Unknown',
+        region: latestEvent.region || 'Unknown',
+        timezone: latestEvent.timezone || 'Unknown',
+        isp: latestEvent.isp || 'Unknown',
+        language: latestEvent.language || 'Unknown'
+    } : {
+        continent: 'Unknown',
+        country: 'Unknown',
+        city: 'Unknown',
+        zip: 'Unknown',
+        ip: 'Unknown',
+        street: 'Unknown',
+        region: 'Unknown',
+        timezone: 'Unknown',
+        isp: 'Unknown',
+        language: 'Unknown'
+    };
+}
+
+
+
+
+
+
+
+
+
 // Function to map countries to their respective continents
 function getContinentFromCountry(countryCode) {
     var continentMap = {
@@ -2856,25 +2893,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize cookie consent
     initializeCookieConsent(detectedCookies, userLanguage);
 
-    // Handle scroll acceptance if enabled
-    if (config.behavior.acceptOnScroll) {
-        let scrollTimeout;
-        window.addEventListener('scroll', function() {
-            if (!getCookie('cookie_consent') && bannerShown) {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(function() {
-                    const scrollPercentage = (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100;
-                    if (scrollPercentage > 30) {
-                        acceptAllCookies();
-                        hideCookieBanner();
-                        if (config.behavior.showFloatingButton) {
-                            showFloatingButton();
-                        }
-                    }
-                }, 200);
-            }
-        });
-    }
+
 
     // Handle continue button acceptance if enabled
     if (config.behavior.acceptOnContinue) {
