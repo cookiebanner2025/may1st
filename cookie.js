@@ -2561,7 +2561,7 @@ function acceptAllCookies() {
         updateConsentStats('accepted');
     }
     
-    // Push dataLayer event for consent acceptance with location data
+    // Use existing locationData
     window.dataLayer.push({
         'event': 'cookie_consent_accepted',
         'consent_mode': {
@@ -2741,34 +2741,20 @@ function updateConsentMode(consentData) {
         'security_storage': 'granted'
     };
 
-    // Determine GCS signal based on consent status and categories
-    let gcsSignal = 'G100'; // Default to all denied
-    
+    let gcsSignal = 'G100';
     if (consentData.status === 'accepted') {
-        gcsSignal = 'G111'; // All granted
+        gcsSignal = 'G111';
     } else if (consentData.status === 'custom') {
-        if (consentData.categories.analytics && !consentData.categories.advertising) {
-            gcsSignal = 'G101'; // Analytics granted, ads denied
-        } else if (consentData.categories.advertising && !consentData.categories.analytics) {
-            gcsSignal = 'G110'; // Ads granted, analytics denied
-        } else if (consentData.categories.analytics && consentData.categories.advertising) {
-            gcsSignal = 'G111'; // Both granted (same as accept all)
-        } else {
-            gcsSignal = ''; // Both denied (same as reject all)
-        }
+        if (consentData.categories.analytics && !consentData.categories.advertising) gcsSignal = 'G101';
+        else if (consentData.categories.advertising && !consentData.categories.analytics) gcsSignal = 'G110';
+        else if (consentData.categories.analytics && consentData.categories.advertising) gcsSignal = 'G111';
     }
 
-    // Update Google consent
     gtag('consent', 'update', consentStates);
     
-    // Update Microsoft UET consent if enabled
     if (config.uetConfig.enabled) {
         const uetConsentState = consentData.categories.advertising ? 'granted' : 'denied';
-        window.uetq.push('consent', 'update', {
-            'ad_storage': uetConsentState
-        });
-        
-        // Push UET consent event to dataLayer with the exact requested format
+        window.uetq.push('consent', 'update', { 'ad_storage': uetConsentState });
         window.dataLayer.push({
             'event': 'uet_consent_update',
             'uet_consent': {
@@ -2781,8 +2767,7 @@ function updateConsentMode(consentData) {
             'location_data': locationData
         });
     }
-    
-    // Push general consent update to dataLayer
+
     window.dataLayer.push({
         'event': 'cookie_consent_update',
         'consent_mode': consentStates,
@@ -2856,6 +2841,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Fetch location data asynchronously
     await fetchLocationData();
 
+    // Update locationData with the latest from dataLayer
+    locationData = getLocationDataFromDataLayer();
+
     // Scan and categorize existing cookies
     const detectedCookies = scanAndCategorizeCookies();
 
@@ -2887,6 +2875,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }
+
+    // Handle continue button acceptance if enabled
+    if (config.behavior.acceptOnContinue) {
+        document.addEventListener('click', function(e) {
+            if (!getCookie('cookie_consent') && bannerShown && 
+                !e.target.closest('#cookieConsentBanner') && 
+                !e.target.closest('#cookieSettingsModal')) {
+                acceptAllCookies();
+                hideCookieBanner();
+                if (config.behavior.showFloatingButton) {
+                    showFloatingButton();
+                }
+            }
+        });
+    }
+});
 
     // Handle continue button acceptance if enabled
     if (config.behavior.acceptOnContinue) {
