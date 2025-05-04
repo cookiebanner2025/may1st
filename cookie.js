@@ -2892,21 +2892,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-    // Handle continue button acceptance if enabled
-    if (config.behavior.acceptOnContinue) {
-        document.addEventListener('click', function(e) {
-            if (!getCookie('cookie_consent') && bannerShown && 
-                !e.target.closest('#cookieConsentBanner') && 
-                !e.target.closest('#cookieSettingsModal')) {
-                acceptAllCookies();
-                hideCookieBanner();
-                if (config.behavior.showFloatingButton) {
-                    showFloatingButton();
-                }
-            }
-        });
-    }
-});
+   
 
 // Export functions for global access if needed
 if (typeof window !== 'undefined') {
