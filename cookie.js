@@ -7,7 +7,7 @@ const config = {
     
     // Microsoft UET Configuration
     uetConfig: {
-        enabled: true,
+        enabled: false,
         defaultTagId: '137027166', // Fallback if auto-detection fails
         autoDetectTagId: true,     // Try to detect UET tag ID automatically
         defaultConsent: 'denied',  // 'denied' or 'granted'
