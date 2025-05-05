@@ -1283,6 +1283,7 @@ let bannerTimer = null;
 let bannerShown = false;
 
 // Location data storage
+// Location data storage with immediate initialization
 let locationData = {
     continent: 'Unknown',
     country: 'Unknown',
@@ -1293,21 +1294,45 @@ let locationData = {
     region: 'Unknown',
     timezone: 'Unknown',
     isp: 'Unknown',
-    language: 'Unknown'
+    language: (navigator.language || "Unknown").split("-")[0]
 };
+
+// Initialize dataLayer with location data immediately
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({
+    'event': 'locationInitialized',
+    'location_data': locationData,
+    'timestamp': new Date().toISOString()
+});
+
+// Try to load from session storage if available
+const savedLocation = sessionStorage.getItem('locationData');
+if (savedLocation) {
+    locationData = JSON.parse(savedLocation);
+    window.dataLayer.push({
+        'event': 'locationLoadedFromCache',
+        'location_data': locationData,
+        'timestamp': new Date().toISOString()
+    });
+}
 
 // Function to fetch location data
 async function fetchLocationData() {
-    var apiKey = '4c1e5d00e0ac93'; // Replace with a valid API key if necessary
+    // Skip if we already have valid location data
+    if (locationData.country !== 'Unknown' && locationData.country !== '') {
+        return;
+    }
 
+    var apiKey = '4c1e5d00e0ac93'; // Your API key
+    
     try {
         const response = await fetch('https://ipinfo.io/json?token=' + apiKey);
         if (!response.ok) {
-            throw new Error('Failed to fetch location data from ipinfo.io');
+            throw new Error('Failed to fetch location data');
         }
         const payload = await response.json();
 
-        // Update locationData with payload or fallback values
+        // Update locationData
         locationData = {
             continent: getContinentFromCountry(payload.country) || "Unknown",
             country: payload.country || "Unknown",
@@ -1321,35 +1346,18 @@ async function fetchLocationData() {
             language: (navigator.language || "Unknown").split("-")[0]
         };
 
-        // Push to dataLayer with location_data object
+        // Save to session storage
+        sessionStorage.setItem('locationData', JSON.stringify(locationData));
+
+        // Push to dataLayer
         window.dataLayer.push({
             'event': 'locationRetrieved',
             'location_data': locationData,
             'timestamp': new Date().toISOString()
         });
 
-        console.log('Location Data Sent to dataLayer:', locationData);
     } catch (error) {
         console.error('Error fetching location:', error);
-        // Ensure fallback values are set on error
-        locationData = {
-            continent: "Unknown",
-            country: "Unknown",
-            city: "Unknown",
-            zip: "Unknown",
-            ip: "Unknown",
-            street: "Unknown",
-            region: "Unknown",
-            timezone: "Unknown",
-            isp: "Unknown",
-            language: (navigator.language || "Unknown").split("-")[0]
-        };
-
-        window.dataLayer.push({
-            'event': 'locationError',
-            'error': error.message,
-            'location_data': locationData
-        });
     }
 }
 
@@ -3613,7 +3621,10 @@ function loadPerformanceCookies() {
 
 // Main execution flow
 document.addEventListener('DOMContentLoaded', async function() {
-    // Check if domain is allowed
+       // Add this line first:
+    fetchLocationData(); // Start loading location data immediately
+
+ // Check if domain is allowed
     if (!isDomainAllowed()) {
         console.log('Cookie consent banner not shown - domain not allowed');
         return;
